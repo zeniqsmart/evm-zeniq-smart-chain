@@ -4,10 +4,10 @@ import (
 	"os"
 	"testing"
 
-	tc "github.com/smartbch/moeingevm/evmwrap/testcase"
+	tc "github.com/zeniqsmart/moeingevm/evmwrap/testcase"
 )
 
-// go test -c -coverpkg github.com/smartbch/moeingevm/ebp .
+// go test -c -coverpkg github.com/zeniqsmart/moeingevm/ebp .
 // NOINSTLOG=1 NODIASM=1 NOSTACK=1 ./ebptests.test -test.coverprofile a.out
 
 func Test1(t *testing.T) {

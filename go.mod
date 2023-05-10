@@ -1,4 +1,4 @@
-module github.com/smartbch/moeingevm
+module github.com/zeniqsmart/moeingevm
 
 go 1.18
 
@@ -13,8 +13,6 @@ require (
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/seehuhn/mt19937 v1.0.0
-	github.com/smartbch/moeingads v0.4.3
-	github.com/smartbch/moeingdb v0.4.3-0.20220509115651-f1e0d5b61068
 	github.com/stretchr/testify v1.7.1
 	github.com/tendermint/tendermint v0.34.10
 	github.com/tinylib/msgp v1.1.6
@@ -22,6 +20,11 @@ require (
 	github.com/vechain/go-ecvrf v0.0.0-20200326080414-5b7e9ee61906
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/sys v0.0.0-20210423185535-09eb48e85fd7 // indirect
+)
+
+require (
+	github.com/zeniqsmart/moeingads v0.0.0-20230510102412-485bdc5a81b4
+	github.com/zeniqsmart/moeingdb v0.4.5-0.20230510110109-644706dab1c1
 )
 
 require (

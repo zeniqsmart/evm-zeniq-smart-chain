@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/smartbch/moeingevm/ebp/ebptests"
+	"github.com/zeniqsmart/moeingevm/ebp/ebptests"
 )
 
 func main() {

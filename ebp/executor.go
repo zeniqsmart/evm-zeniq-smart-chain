@@ -4,9 +4,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/holiman/uint256"
-	modbtypes "github.com/smartbch/moeingdb/types"
+	modbtypes "github.com/zeniqsmart/moeingdb/types"
 
-	"github.com/smartbch/moeingevm/types"
+	"github.com/zeniqsmart/moeingevm/types"
 )
 
 type TxExecutor interface {

@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"github.com/holiman/uint256"
 
-	"github.com/smartbch/moeingevm/utils"
+	"github.com/zeniqsmart/moeingevm/utils"
 )
 
 type AccountInfo struct {

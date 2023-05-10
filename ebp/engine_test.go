@@ -15,15 +15,15 @@ import (
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/smartbch/moeingads"
-	"github.com/smartbch/moeingads/store"
-	"github.com/smartbch/moeingads/store/rabbit"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/zeniqsmart/moeingads"
+	"github.com/zeniqsmart/moeingads/store"
+	"github.com/zeniqsmart/moeingads/store/rabbit"
 
-	"github.com/smartbch/moeingevm/evmwrap/testcase"
-	"github.com/smartbch/moeingevm/types"
-	//"github.com/smartbch/moeingevm/utils"
+	"github.com/zeniqsmart/moeingevm/evmwrap/testcase"
+	"github.com/zeniqsmart/moeingevm/types"
+	//"github.com/zeniqsmart/moeingevm/utils"
 )
 
 func prepareTruck() (*store.TrunkStore, *store.RootStore) {

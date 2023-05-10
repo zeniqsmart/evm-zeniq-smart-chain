@@ -7,8 +7,8 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/smartbch/moeingdb/modb"
-	"github.com/smartbch/moeingevm/types"
+	"github.com/zeniqsmart/moeingdb/modb"
+	"github.com/zeniqsmart/moeingevm/types"
 )
 
 func GetBlockContentByHeight(c *types.Context, height uint64) (*types.Block, []*types.Transaction) {

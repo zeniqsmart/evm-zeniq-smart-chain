@@ -5,15 +5,15 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	modbtypes "github.com/smartbch/moeingdb/types"
+	modbtypes "github.com/zeniqsmart/moeingdb/types"
 )
 
 /*
-type ChainEvent struct {
-	Block *types.Block
-	Hash  common.Hash
-	Logs  []*types.Log
-}
+	type ChainEvent struct {
+		Block *types.Block
+		Hash  common.Hash
+		Logs  []*types.Log
+	}
 */
 type ChainEvent struct {
 	BlockHeader *Header

@@ -10,8 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
 
-	"github.com/smartbch/moeingevm/types"
-	"github.com/smartbch/moeingevm/utils"
+	"github.com/zeniqsmart/moeingevm/types"
+	"github.com/zeniqsmart/moeingevm/utils"
 )
 
 //#include "../evmwrap/host_bridge/bridge.h"
@@ -316,7 +316,7 @@ func (runner *TxRunner) changeValue(chg_value *changed_value) {
 	runner.RwLists.StorageWList = append(runner.RwLists.StorageWList, op)
 }
 
-//hash => height; height => block in db
+// hash => height; height => block in db
 func (runner *TxRunner) getBlockHash(num C.uint64_t) (result evmc_bytes32) {
 	hash := runner.Ctx.GetBlockHashByHeight(uint64(num))
 	writeCBytes32WithSlice(&result, hash[:])
@@ -520,9 +520,9 @@ func RunTxForRpc(currBlock *types.BlockInfo, estimateGas bool, runner *TxRunner)
 	return runTxHelper(idx+RpcRunnersIdStart, currBlock, estimateGas)
 }
 
-//Start the idx-th TxRunner to run the transaction assigned to it beforehand.
-//In this function Go data structures are converted to C data structures and finally
-//call the C entrance function 'zero_depth_call_wrap'.
+// Start the idx-th TxRunner to run the transaction assigned to it beforehand.
+// In this function Go data structures are converted to C data structures and finally
+// call the C entrance function 'zero_depth_call_wrap'.
 func runTxHelper(idx int, currBlock *types.BlockInfo, estimateGas bool) int64 {
 	runner := getRunner(idx)
 	if !runner.ForRpc && runner.Tx.Height+types.TOO_OLD_THRESHOLD < uint64(currBlock.Number) {

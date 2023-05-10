@@ -21,11 +21,11 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/smartbch/moeingads"
-	"github.com/smartbch/moeingads/store/rabbit"
+	"github.com/zeniqsmart/moeingads"
+	"github.com/zeniqsmart/moeingads/store/rabbit"
 
-	"github.com/smartbch/moeingevm/types"
-	"github.com/smartbch/moeingevm/utils"
+	"github.com/zeniqsmart/moeingevm/types"
+	"github.com/zeniqsmart/moeingevm/utils"
 )
 
 /*

@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/smartbch/moeingads/store/rabbit"
-	modbtypes "github.com/smartbch/moeingdb/types"
+	"github.com/zeniqsmart/moeingads/store/rabbit"
+	modbtypes "github.com/zeniqsmart/moeingdb/types"
 )
 
 var (
@@ -77,7 +77,7 @@ func (c *Context) IsShaGateFork() bool {
 	return c.Height >= c.ShaGateForkBlock
 }
 
-//new empty rbt with same parent store as the old one
+// new empty rbt with same parent store as the old one
 func (c *Context) WithRbtCopy() *Context {
 	if !c.Rbt.IsClean() {
 		panic("Can not copy when rabbitstore is not clean")

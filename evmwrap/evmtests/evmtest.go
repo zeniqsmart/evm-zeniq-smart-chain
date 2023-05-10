@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
 
-	tc "github.com/smartbch/moeingevm/evmwrap/testcase"
+	tc "github.com/zeniqsmart/moeingevm/evmwrap/testcase"
 )
 
 /*
@@ -38,7 +38,7 @@ int64_t zero_depth_call_wrap(evmc_bytes32 gas_price,
 */
 import "C"
 
-//type bytes_info = C.struct_bytes_info
+// type bytes_info = C.struct_bytes_info
 type evmc_address = C.struct_evmc_address
 type evmc_bytes32 = C.struct_evmc_bytes32
 type evmc_result = C.struct_evmc_result
