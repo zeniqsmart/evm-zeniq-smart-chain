@@ -1,0 +1,35 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+.idea
+*.dump
+*.txt
+*.swp
+evmwrap/evmtests/evmtests
+evmwrap/evmtests/run_test_file
+ebp/testdbdata/
+ebp/ebptests/rocksdb.db/
+evmwrap/evmtests/AOTDIR
+evmwrap/evmtests/deploycode
+evmwrap/cachetest/cachetest
+*.un~
+*.go~
+*.cpp~
+*.hpp~
+*.h~
+*.sh~
