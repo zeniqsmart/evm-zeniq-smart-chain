@@ -58,7 +58,7 @@ jobs:
       - name: Checkout testdata
         uses: actions/checkout@v2
         with:
-          repository: smartbch/testdata
+          repository: zeniqsmart/testdata
           path: testdata
 
       - name: Build evmwrap

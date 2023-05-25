@@ -10,6 +10,6 @@ cd ..
 
 golangci-lint run --build-tags cppbtree
 
-# git clone https://github.com/smartbch/testdata.git
+# git clone https://github.com/zeniqsmart/testdata.git
 go build ./...
 RUN_ALL_EBP_TESTS=NO go test ./...
