@@ -50,8 +50,7 @@ func (vdfc *VrfVerifyContract) Run(input []byte) ([]byte, error) {
 	if err != nil {
 		return zeros[:], err
 	}
-	vrf := ecvrf.NewSecp256k1Sha256Tai()
-	beta, err := vrf.Verify(pubKey.ToECDSA(), alpha, pi)
+	beta, err := ecvrf.Secp256k1Sha256Tai.Verify(pubKey.ToECDSA(), alpha, pi)
 	if err != nil {
 		return zeros[:], err
 	}
