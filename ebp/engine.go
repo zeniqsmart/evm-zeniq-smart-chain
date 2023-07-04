@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"sync"
+	"fmt"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -22,7 +23,12 @@ import (
 
 const DefaultTxGasLimit uint64 = 1000_0000
 
-var Sep206Address = common.HexToAddress("0x5b52bfB8062Ce664D74bbCd4Cd6DC7Df53Fd7233")
+var (
+	// SEP206SEP
+	SEP206AddrAsZeniqOnEthereum = common.HexToAddress("0x5b52bfB8062Ce664D74bbCd4Cd6DC7Df53Fd7233")
+	SEP206AddrZeniqFirst = common.HexToAddress("0x000000000000000000000000005a454e49510002")
+)
+
 var _ TxExecutor = (*txEngine)(nil)
 
 type TxRange struct {
@@ -268,7 +274,8 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 		info.errorStr = "not enough balance to pay gasfee"
 		return err
 	} else {
-		if info.tx.To == Sep206Address {
+		if info.tx.To == SEP206AddrAsZeniqOnEthereum ||
+		   info.tx.To == SEP206AddrZeniqFirst {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {

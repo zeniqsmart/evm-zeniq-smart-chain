@@ -8,12 +8,23 @@ extern "C" {
 #include "./../evmc/include/evmc/helpers.h"
 }
 
+const int64_t SEP109_CONTRACT_ID  = 0x5a454e49510004;
+const int64_t SEP101_CONTRACT_ID  = 0x5a454e49510003;
+const int64_t SEP206_CONTRACT_ID  = 0x5a454e49510002;
+const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001;
+
 static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
 	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
 }
 
 static inline int64_t get_precompiled_id(const evmc_address& addr) {
-    if(address_equal_inline(addr, SEP206_CONTRACT_ADDR)) return SEP206_CONTRACT_ID;
+	// SEP206SEP
+	const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
+	const evmc_address SEP206AddrZeniqFirst        = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x5a,0x45,0x4e,0x49,0x51,0x00,0x02};
+	// for SEP206 ADDR does not need to be 0-badded ID
+	if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) return SEP206_CONTRACT_ID;
+	if(address_equal_inline(addr, SEP206AddrZeniqFirst        )) return SEP206_CONTRACT_ID;
+	// else assume 0-badded ID
 	for(int i=0; i<12; i++) {
 		if(addr.bytes[i] != 0) return -1;
 	}
@@ -22,7 +33,6 @@ static inline int64_t get_precompiled_id(const evmc_address& addr) {
 		res <<= 8;
 		res |= int64_t(uint64_t(addr.bytes[i]));
 	}
-	if(res==SEP206_CONTRACT_ID) return -1;
 	return res;
 }
 
