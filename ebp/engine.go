@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"sync"
-	"fmt"
+	// "fmt"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"

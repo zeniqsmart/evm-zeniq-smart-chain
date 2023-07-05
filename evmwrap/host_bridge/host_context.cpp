@@ -11,7 +11,8 @@ extern "C" {
 const int64_t SEP109_CONTRACT_ID  = 0x5a454e49510004;
 const int64_t SEP101_CONTRACT_ID  = 0x5a454e49510003;
 const int64_t SEP206_CONTRACT_ID  = 0x5a454e49510002;
-const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001;
+//const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001; // StakingContractAddress2 never used
+const int64_t STAKING_CONTRACT_ID = 0x00000000002710;
 
 static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
 	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
