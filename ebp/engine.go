@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"sync"
-	// "fmt"
+	//"fmt"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -26,7 +26,7 @@ const DefaultTxGasLimit uint64 = 1000_0000
 var (
 	// SEP206SEP
 	SEP206AddrAsZeniqOnEthereum = common.HexToAddress("0x5b52bfB8062Ce664D74bbCd4Cd6DC7Df53Fd7233")
-	SEP206AddrZeniqFirst = common.HexToAddress("0x000000000000000000000000005a454e49510002")
+	SEP206AddrZeniqFirst        = common.HexToAddress("0x000000000000000000000000005a454e49510002")
 )
 
 var _ TxExecutor = (*txEngine)(nil)
@@ -275,7 +275,7 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 		return err
 	} else {
 		if info.tx.To == SEP206AddrAsZeniqOnEthereum ||
-		   info.tx.To == SEP206AddrZeniqFirst {
+			info.tx.To == SEP206AddrZeniqFirst {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {
@@ -780,6 +780,7 @@ func TransferFromSenderAccToBlackHoleAcc(ctx *types.Context, sender common.Addre
 
 // will lazy init account if acc not exist
 func updateBalance(ctx *types.Context, address common.Address, amount *uint256.Int, isAdd bool) error {
+	// fmt.Printf("updateBalance %v\n",address)
 	acc := ctx.GetAccount(address)
 	if acc == nil {
 		//lazy init

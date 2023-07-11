@@ -22,10 +22,11 @@ static inline int64_t get_precompiled_id(const evmc_address& addr) {
 	// SEP206SEP
 	const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
 	const evmc_address SEP206AddrZeniqFirst        = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x5a,0x45,0x4e,0x49,0x51,0x00,0x02};
-	// for SEP206 ADDR does not need to be 0-badded ID
-	if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) return SEP206_CONTRACT_ID;
-	if(address_equal_inline(addr, SEP206AddrZeniqFirst        )) return SEP206_CONTRACT_ID;
-	// else assume 0-badded ID
+	// these lines away to get over 309538 (culprit block is 309536), but goal is to eventually have address SEP206AddrAsZeniqOnEthereum
+	// // for SEP206 ADDR does not need to be 0-badded ID
+	// if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) return SEP206_CONTRACT_ID;
+	// if(address_equal_inline(addr, SEP206AddrZeniqFirst        )) return SEP206_CONTRACT_ID;
+	// // else assume 0-badded ID
 	for(int i=0; i<12; i++) {
 		if(addr.bytes[i] != 0) return -1;
 	}
@@ -355,6 +356,9 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 	default:
 		assert(false);
 	}
+
+	//_appHash std::cout<<"_appHash ::call "<<txctrl->get_block_number()<<" tx "<<(int)msg.destination.bytes[0]<<" "<<(int)msg.destination.bytes[1]<<" "<<(int)msg.destination.bytes[2]<<" "<<(int)msg.destination.bytes[2]<<std::endl;
+
 	if(normal_run) {
 		int64_t id = get_precompiled_id(call_msg.destination);
 		if(is_precompiled(id, txctrl->get_cfg())) {
@@ -389,16 +393,20 @@ static inline void transfer(tx_control* txctrl, const evmc_address& sender, cons
 	bool is_empty = (acc.nonce == 0 && acc.balance == uint256(0) && 
 		txctrl->get_bytecode_entry(destination).bytecode.size() == 0);
 	if(acc.is_null() /*&& !call_precompiled*/) {
-		if(zero_value && !call_precompiled) {
+		if (zero_value && !call_precompiled) {
+			//_appHash std::cout<<"_appHash transfer nop "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 			*is_nop = true;
 			return;
 		}
+		//_appHash std::cout<<"_appHash transfer new dest "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 		txctrl->new_account(destination);
 	}
-	if(is_empty && zero_value) { //eip158
+	if (is_empty && zero_value) { //eip158
+		//_appHash std::cout<<"_appHash transfer destruct "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 		txctrl->selfdestruct(destination);
 	}
 	if(!zero_value /*&& !call_precompiled*/) {
+		//_appHash std::cout<<"_appHash transfer do "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 		txctrl->transfer(sender, destination, u256be_to_u256(value));
 	}
 	*is_nop = false;
