@@ -6,7 +6,7 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/deckarep/golang-set v1.7.1 // indirect
-	github.com/ethereum/go-ethereum v1.10.7
+	github.com/ethereum/go-ethereum v1.10.17
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/holiman/uint256 v1.2.0
 	github.com/mattn/go-runewidth v0.0.12 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.8 // indirect
-	github.com/linxGnu/grocksdb v1.7.2 // indirect
+	github.com/linxGnu/grocksdb v1.6.20
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mmcloughlin/meow v0.0.0-20200201185800-3501c7c05d21 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
