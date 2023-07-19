@@ -8,25 +8,7 @@ extern "C" {
 #include "./../evmc/include/evmc/helpers.h"
 }
 
-const int64_t SEP109_CONTRACT_ID  = 0x5a454e49510004;
-const int64_t SEP101_CONTRACT_ID  = 0x5a454e49510003;
-const int64_t SEP206_CONTRACT_ID  = 0x5a454e49510002;
-//const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001; // StakingContractAddress2 never used
-const int64_t STAKING_CONTRACT_ID = 0x00000000002710;
-
-static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
-	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
-}
-
 static inline int64_t get_precompiled_id(const evmc_address& addr) {
-	// SEP206SEP
-	const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
-	const evmc_address SEP206AddrZeniqFirst        = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x5a,0x45,0x4e,0x49,0x51,0x00,0x02};
-	// these lines away to get over 309538 (culprit block is 309536), but goal is to eventually have address SEP206AddrAsZeniqOnEthereum
-	// // for SEP206 ADDR does not need to be 0-badded ID
-	// if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) return SEP206_CONTRACT_ID;
-	// if(address_equal_inline(addr, SEP206AddrZeniqFirst        )) return SEP206_CONTRACT_ID;
-	// // else assume 0-badded ID
 	for(int i=0; i<12; i++) {
 		if(addr.bytes[i] != 0) return -1;
 	}
@@ -38,7 +20,19 @@ static inline int64_t get_precompiled_id(const evmc_address& addr) {
 	return res;
 }
 
-static inline bool is_precompiled(int64_t id, const config cfg) {
+static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
+	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
+}
+
+static inline int64_t get_precompiled_id_new(const evmc_address& addr) {
+	const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
+	if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) {
+		return SEP206_CONTRACT_ID;
+	}
+	return get_precompiled_id(addr);
+}
+
+static inline bool is_precompiled_id(int64_t id, const config cfg) {
 	return (1 <= id && id <= 9) ||
 	       id == STAKING_CONTRACT_ID ||
 	       (id == SEP109_CONTRACT_ID && cfg.after_xhedge_fork) ||
@@ -46,8 +40,12 @@ static inline bool is_precompiled(int64_t id, const config cfg) {
 	       id == SEP206_CONTRACT_ID;
 }
 
-static inline bool is_precompiled(const evmc_address& addr, const config cfg) {
-	return is_precompiled(get_precompiled_id(addr), cfg);
+static inline bool is_precompiled_addr(const evmc_address& addr, const config cfg) {
+	return is_precompiled_id(get_precompiled_id(addr), cfg);
+}
+
+static inline bool is_precompiled_addr_new(const evmc_address& addr, const config cfg) {
+	return is_precompiled_id(get_precompiled_id_new(addr), cfg);
 }
 
 // following functions wrap C++ member functions into C-style functions, thus
@@ -294,8 +292,11 @@ void evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_addres
 	uint256 balance = txctrl->get_balance(addr); //make a copy
 
 	const account_info& acc = txctrl->get_account(beneficiary);
-	bool is_prec = is_precompiled(beneficiary, txctrl->get_cfg()) &&
-			SELFDESTRUCT_BENEFICIARY_CANNOT_BE_PRECOMPILED;
+	bool isprecompiled = is_precompiled_addr(beneficiary, txctrl->get_cfg());
+	if (txctrl->get_block_number() >= 10101000) {
+		isprecompiled = is_precompiled_addr_new(beneficiary, txctrl->get_cfg());
+	}
+	bool is_prec = isprecompiled && SELFDESTRUCT_BENEFICIARY_CANNOT_BE_PRECOMPILED;
 	bool zero_value = balance == uint256(0);
 	equalfn_evmc_address equalfn;
 	bool self_as_beneficiary = equalfn(beneficiary, this->msg.destination);
@@ -361,7 +362,10 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 
 	if(normal_run) {
 		int64_t id = get_precompiled_id(call_msg.destination);
-		if(is_precompiled(id, txctrl->get_cfg())) {
+		if (txctrl->get_block_number() >= 10101000) {
+			id = get_precompiled_id_new(call_msg.destination);
+		}
+		if(is_precompiled_id(id, txctrl->get_cfg())) {
 			result = ctx.run_precompiled_contract(call_msg.destination, id);
 		} else {
 			ctx.load_code(call_msg.destination);
@@ -389,7 +393,10 @@ void evmc_host_context::check_eip158() {
 static inline void transfer(tx_control* txctrl, const evmc_address& sender, const evmc_address& destination, const evmc_uint256be& value, bool* is_nop) {
 	const account_info& acc = txctrl->get_account(destination);
 	bool zero_value = is_zero_bytes32(value.bytes);
-	bool call_precompiled = is_precompiled(destination, txctrl->get_cfg());
+	bool call_precompiled = is_precompiled_addr(destination, txctrl->get_cfg());
+	if (txctrl->get_block_number() >= 10101000) {
+		call_precompiled = is_precompiled_addr_new(destination, txctrl->get_cfg());
+	}
 	bool is_empty = (acc.nonce == 0 && acc.balance == uint256(0) && 
 		txctrl->get_bytecode_entry(destination).bytecode.size() == 0);
 	if(acc.is_null() /*&& !call_precompiled*/) {
@@ -422,7 +429,10 @@ evmc_result evmc_host_context::call() {
 	}
 	evmc_result result;
 	int64_t id = get_precompiled_id(msg.destination);
-	if(is_precompiled(id, txctrl->get_cfg())) {
+	if (txctrl->get_block_number() >= 10101000) {
+		id = get_precompiled_id_new(msg.destination);
+	}
+	if(is_precompiled_id(id, txctrl->get_cfg())) {
 		result = run_precompiled_contract(msg.destination, id);
 		if(result.status_code != EVMC_SUCCESS) {
 			txctrl->revert_to_snapshot(snapshot);
@@ -756,7 +766,11 @@ inline uint32_t get_selector(const uint8_t* data) { //selector is big-endian byt
 }
 
 evmc_result evmc_host_context::run_precompiled_contract_sep101() {
-	if(get_precompiled_id(msg.destination) == SEP101_CONTRACT_ID) {// only allow delegatecall
+	int64_t id = get_precompiled_id(msg.destination);
+	if (txctrl->get_block_number() >= 10101000) {
+		id = get_precompiled_id_new(msg.destination);
+	}
+	if(id == SEP101_CONTRACT_ID) {// only allow delegatecall
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
 	if(msg.depth == 0) { // zero-depth-call is forbidden (not accessible from EOA)
@@ -1057,7 +1071,11 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 }
 
 evmc_result evmc_host_context::run_precompiled_contract_sep206() {
-	if(get_precompiled_id(msg.destination) != SEP206_CONTRACT_ID) {//forbidden delegateccall
+	int64_t id = get_precompiled_id(msg.destination);
+	if (txctrl->get_block_number() >= 10101000) {
+		id = get_precompiled_id_new(msg.destination);
+	}
+	if(id != SEP206_CONTRACT_ID) {//forbidden delegateccall
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
 	if(msg.input_size < 4) {

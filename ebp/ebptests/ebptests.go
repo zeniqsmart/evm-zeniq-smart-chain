@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/holiman/uint256"
-	"github.com/tendermint/tendermint/libs/log"
 	"github.com/zeniqsmart/moeingads"
 	"github.com/zeniqsmart/moeingads/store"
 	"github.com/zeniqsmart/moeingads/store/rabbit"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/zeniqsmart/moeingevm/ebp"
 	tc "github.com/zeniqsmart/moeingevm/evmwrap/testcase"

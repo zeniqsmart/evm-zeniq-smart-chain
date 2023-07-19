@@ -23,12 +23,9 @@ import (
 
 const DefaultTxGasLimit uint64 = 1000_0000
 
-var (
-	// SEP206SEP
-	SEP206AddrAsZeniqOnEthereum = common.HexToAddress("0x5b52bfB8062Ce664D74bbCd4Cd6DC7Df53Fd7233")
-	SEP206AddrZeniqFirst        = common.HexToAddress("0x000000000000000000000000005a454e49510002")
-)
-
+// SEP206SEP
+var Sep206Address = common.HexToAddress("0x0000000000000000000000000000000000002711")
+var SEP206AddrAsZeniqOnEthereum = common.HexToAddress("0x5b52bfB8062Ce664D74bbCd4Cd6DC7Df53Fd7233")
 var _ TxExecutor = (*txEngine)(nil)
 
 type TxRange struct {
@@ -274,8 +271,8 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 		info.errorStr = "not enough balance to pay gasfee"
 		return err
 	} else {
-		if info.tx.To == SEP206AddrAsZeniqOnEthereum ||
-			info.tx.To == SEP206AddrZeniqFirst {
+		if  (info.tx.To == Sep206Address && exec.getCurrHeight() <  10101000) ||
+			(info.tx.To == SEP206AddrAsZeniqOnEthereum && exec.getCurrHeight() >= 10101000) {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {

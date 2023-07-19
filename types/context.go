@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"math"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -18,6 +19,7 @@ var (
 	ErrSameNonceAlredyInBlock = errors.New("tx with same nonce already in block")
 	ErrNonceTooLarge          = errors.New("tx nonce is larger than the account nonce")
 	ErrTooManyEntries         = errors.New("too many candidicate entries to be returned, please limit the difference between startHeight and endHeight")
+	RolDoLog bool = false;
 )
 
 type Context struct {
@@ -111,6 +113,9 @@ func (c *Context) GetAccount(address common.Address) *AccountInfo {
 func (c *Context) SetAccount(address common.Address, acc *AccountInfo) {
 	k := GetAccountKey(address)
 	c.Rbt.Set(k, acc.Bytes())
+	if RolDoLog {
+		fmt.Printf("RL SetAccount address %v acc %v",address, acc);
+	}
 }
 
 func (c *Context) GetCode(contract common.Address) *BytecodeInfo {
@@ -192,6 +197,9 @@ func (c *Context) DeleteDynamicArray(seq uint64, arrSlot string) {
 func (c *Context) SetStorageAt(seq uint64, key string, val []byte) {
 	k := GetValueKey(seq, key)
 	c.Rbt.Set(k, val)
+	if RolDoLog {
+		fmt.Printf("RL SetStorageAt seq %v key %v val %v", seq, key, val);
+	}
 }
 
 func (c *Context) DeleteStorageAt(seq uint64, key string) {
@@ -211,10 +219,16 @@ func (c *Context) GetCurrBlockBasicInfo() *Block {
 
 func (c *Context) SetCurrBlockBasicInfo(blk *Block) {
 	c.Rbt.Set([]byte{CURR_BLOCK_KEY}, blk.SerializeBasicInfo())
+	if RolDoLog {
+		fmt.Printf("RL SetCurrBlockBasicInfo blk %v", blk);
+	}
 }
 
 func (c *Context) StoreBlock(blk *modbtypes.Block, txid2sigMap map[[32]byte][65]byte) {
 	c.Db.AddBlock(blk, -1, txid2sigMap)
+	if RolDoLog {
+		fmt.Printf("RL StoreBlock blk %v txid2sigMap %s", blk, txid2sigMap);
+	}
 }
 
 func (c *Context) GetLatestHeight() int64 {
