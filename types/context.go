@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"math"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
