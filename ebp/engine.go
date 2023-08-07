@@ -22,6 +22,7 @@ import (
 )
 
 const DefaultTxGasLimit uint64 = 1000_0000
+const CCRPCForkBlock = 11000011
 
 // SEP206SEP
 var Sep206Address = common.HexToAddress("0x0000000000000000000000000000000000002711")
@@ -271,8 +272,8 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 		info.errorStr = "not enough balance to pay gasfee"
 		return err
 	} else {
-		if  (info.tx.To == Sep206Address && exec.getCurrHeight() <  10101000) ||
-			(info.tx.To == SEP206AddrAsZeniqOnEthereum && exec.getCurrHeight() >= 10101000) {
+		if  (info.tx.To == Sep206Address && exec.getCurrHeight() <  CCRPCForkBlock ) ||
+			(info.tx.To == SEP206AddrAsZeniqOnEthereum && exec.getCurrHeight() >= CCRPCForkBlock ) {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {

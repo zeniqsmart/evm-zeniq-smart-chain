@@ -8,6 +8,8 @@ extern "C" {
 #include "./../evmc/include/evmc/helpers.h"
 }
 
+#define CCRPCForkBlock 11000011
+
 static inline int64_t get_precompiled_id(const evmc_address& addr) {
 	for(int i=0; i<12; i++) {
 		if(addr.bytes[i] != 0) return -1;
@@ -293,7 +295,7 @@ void evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_addres
 
 	const account_info& acc = txctrl->get_account(beneficiary);
 	bool isprecompiled = is_precompiled_addr(beneficiary, txctrl->get_cfg());
-	if (txctrl->get_block_number() >= 10101000) {
+	if (txctrl->get_block_number() >= CCRPCForkBlock) {
 		isprecompiled = is_precompiled_addr_new(beneficiary, txctrl->get_cfg());
 	}
 	bool is_prec = isprecompiled && SELFDESTRUCT_BENEFICIARY_CANNOT_BE_PRECOMPILED;
@@ -362,7 +364,7 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 
 	if(normal_run) {
 		int64_t id = get_precompiled_id(call_msg.destination);
-		if (txctrl->get_block_number() >= 10101000) {
+		if (txctrl->get_block_number() >= CCRPCForkBlock) {
 			id = get_precompiled_id_new(call_msg.destination);
 		}
 		if(is_precompiled_id(id, txctrl->get_cfg())) {
@@ -394,7 +396,7 @@ static inline void transfer(tx_control* txctrl, const evmc_address& sender, cons
 	const account_info& acc = txctrl->get_account(destination);
 	bool zero_value = is_zero_bytes32(value.bytes);
 	bool call_precompiled = is_precompiled_addr(destination, txctrl->get_cfg());
-	if (txctrl->get_block_number() >= 10101000) {
+	if (txctrl->get_block_number() >= CCRPCForkBlock) {
 		call_precompiled = is_precompiled_addr_new(destination, txctrl->get_cfg());
 	}
 	bool is_empty = (acc.nonce == 0 && acc.balance == uint256(0) && 
@@ -429,7 +431,7 @@ evmc_result evmc_host_context::call() {
 	}
 	evmc_result result;
 	int64_t id = get_precompiled_id(msg.destination);
-	if (txctrl->get_block_number() >= 10101000) {
+	if (txctrl->get_block_number() >= CCRPCForkBlock) {
 		id = get_precompiled_id_new(msg.destination);
 	}
 	if(is_precompiled_id(id, txctrl->get_cfg())) {
@@ -767,7 +769,7 @@ inline uint32_t get_selector(const uint8_t* data) { //selector is big-endian byt
 
 evmc_result evmc_host_context::run_precompiled_contract_sep101() {
 	int64_t id = get_precompiled_id(msg.destination);
-	if (txctrl->get_block_number() >= 10101000) {
+	if (txctrl->get_block_number() >= CCRPCForkBlock) {
 		id = get_precompiled_id_new(msg.destination);
 	}
 	if(id == SEP101_CONTRACT_ID) {// only allow delegatecall
@@ -1072,7 +1074,7 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 
 evmc_result evmc_host_context::run_precompiled_contract_sep206() {
 	int64_t id = get_precompiled_id(msg.destination);
-	if (txctrl->get_block_number() >= 10101000) {
+	if (txctrl->get_block_number() >= CCRPCForkBlock) {
 		id = get_precompiled_id_new(msg.destination);
 	}
 	if(id != SEP206_CONTRACT_ID) {//forbidden delegateccall
