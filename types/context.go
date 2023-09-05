@@ -26,6 +26,7 @@ type Context struct {
 	Height           int64
 	XHedgeForkBlock  int64
 	ShaGateForkBlock int64
+	CCRPCForkBlock   uint64
 }
 
 func NewContext(rbt *rabbit.RabbitStore, db modbtypes.DB) *Context {
@@ -34,6 +35,7 @@ func NewContext(rbt *rabbit.RabbitStore, db modbtypes.DB) *Context {
 		Db:               db,
 		XHedgeForkBlock:  math.MaxInt64,
 		ShaGateForkBlock: math.MaxInt64,
+		CCRPCForkBlock:   math.MaxInt64,
 	}
 }
 
@@ -44,6 +46,7 @@ func (c *Context) WithRbt(rabbitStore *rabbit.RabbitStore) *Context {
 		XHedgeForkBlock:  c.XHedgeForkBlock,
 		ShaGateForkBlock: c.ShaGateForkBlock,
 		Height:           c.Height,
+		CCRPCForkBlock:   c.CCRPCForkBlock,
 	}
 }
 
@@ -54,6 +57,7 @@ func (c *Context) WithDb(db modbtypes.DB) *Context {
 		XHedgeForkBlock:  c.XHedgeForkBlock,
 		ShaGateForkBlock: c.ShaGateForkBlock,
 		Height:           c.Height,
+		CCRPCForkBlock:   c.CCRPCForkBlock,
 	}
 }
 
@@ -71,6 +75,10 @@ func (c *Context) SetCurrentHeight(height int64) {
 
 func (c *Context) IsXHedgeFork() bool {
 	return c.Height >= c.XHedgeForkBlock
+}
+
+func (c *Context) GetCCRPCForkBlock() uint64 {
+	return c.CCRPCForkBlock
 }
 
 func (c *Context) IsShaGateFork() bool {

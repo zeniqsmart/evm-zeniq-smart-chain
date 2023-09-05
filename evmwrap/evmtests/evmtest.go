@@ -12,6 +12,7 @@ import (
 	"path"
 	"strings"
 	"unsafe"
+	"math"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
@@ -477,6 +478,7 @@ func runTestCaseWithGasLimit(filename string, theCase *tc.TestCase, printLog boo
 	bi.timestamp = C.int64_t(currBlock.Timestamp)
 	bi.gas_limit = C.int64_t(currBlock.GasLimit)
 	bi.cfg.after_xhedge_fork = false
+	bi.cfg.CCRPCForkBlock = C.uint64_t(math.MaxInt64()) // to allow conversion to int64
 	writeCBytes32WithBytes32(&bi.difficulty, currBlock.Difficulty[:])
 	writeCBytes32WithBytes32(&bi.chain_id, currBlock.ChainId[:])
 	data_ptr := (*C.uint8_t)(nil)

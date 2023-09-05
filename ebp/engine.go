@@ -22,7 +22,6 @@ import (
 )
 
 const DefaultTxGasLimit uint64 = 1000_0000
-const CCRPCForkBlock = 11000011
 
 // SEP206SEP
 var Sep206Address = common.HexToAddress("0x0000000000000000000000000000000000002711")
@@ -59,6 +58,8 @@ type txEngine struct {
 	aotReloadInterval int64
 
 	logger log.Logger
+
+	CCRPCForkBlock uint64
 }
 
 func (exec *txEngine) Context() *types.Context {
@@ -160,7 +161,8 @@ func GetEmptyFrontier() Frontier {
 	}
 }
 
-func NewEbpTxExec(exeRoundCount, runnerNumber, parallelNum, defaultTxListCap int, s gethtypes.Signer, logger log.Logger) *txEngine {
+func NewEbpTxExec(exeRoundCount, runnerNumber, parallelNum, defaultTxListCap int,
+	s gethtypes.Signer, logger log.Logger, CCRPCForkBlock uint64) *txEngine {
 	Runners = make([]*TxRunner, runnerNumber)
 	return &txEngine{
 		roundNum:     exeRoundCount,
@@ -170,6 +172,7 @@ func NewEbpTxExec(exeRoundCount, runnerNumber, parallelNum, defaultTxListCap int
 		committedTxs: make([]*types.Transaction, 0, defaultTxListCap),
 		signer:       s,
 		logger:       logger,
+		CCRPCForkBlock: CCRPCForkBlock,
 	}
 }
 
@@ -272,8 +275,8 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 		info.errorStr = "not enough balance to pay gasfee"
 		return err
 	} else {
-		if  (info.tx.To == Sep206Address && exec.getCurrHeight() <  CCRPCForkBlock ) ||
-			(info.tx.To == SEP206AddrAsZeniqOnEthereum && exec.getCurrHeight() >= CCRPCForkBlock ) {
+		if  (info.tx.To == Sep206Address && exec.getCurrHeight() <  exec.CCRPCForkBlock ) ||
+			(info.tx.To == SEP206AddrAsZeniqOnEthereum && exec.getCurrHeight() >= exec.CCRPCForkBlock ) {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {
