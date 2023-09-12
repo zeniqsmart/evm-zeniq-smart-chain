@@ -23,7 +23,7 @@ require (
 )
 
 require (
-	github.com/zeniqsmart/moeingads v0.0.0-20230728113238-e4b9170984f7
+	github.com/zeniqsmart/moeingads v0.5.0
 	github.com/zeniqsmart/moeingdb v0.5.0
 )
 
@@ -61,3 +61,7 @@ require (
 )
 
 replace github.com/vechain/go-ecvrf => github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
+
+// replace github.com/zeniqsmart/moeingads => ../moeingads
+
+// replace github.com/zeniqsmart/moeingdb => ../moeingdb
