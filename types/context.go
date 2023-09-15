@@ -26,16 +26,16 @@ type Context struct {
 	Height           int64
 	XHedgeForkBlock  int64
 	ShaGateForkBlock int64
-	CCRPCForkBlock   uint64
+	CCRPCForkBlock   int64
 }
 
-func NewContext(rbt *rabbit.RabbitStore, db modbtypes.DB) *Context {
+func NewContext(rbt *rabbit.RabbitStore, db modbtypes.DB, CCRPCForkBlock int64) *Context {
 	return &Context{
 		Rbt:              rbt,
 		Db:               db,
 		XHedgeForkBlock:  math.MaxInt64,
 		ShaGateForkBlock: math.MaxInt64,
-		CCRPCForkBlock:   math.MaxInt64,
+		CCRPCForkBlock:   CCRPCForkBlock,
 	}
 }
 
@@ -43,9 +43,9 @@ func (c *Context) WithRbt(rabbitStore *rabbit.RabbitStore) *Context {
 	return &Context{
 		Rbt:              rabbitStore,
 		Db:               c.Db,
+		Height:           c.Height,
 		XHedgeForkBlock:  c.XHedgeForkBlock,
 		ShaGateForkBlock: c.ShaGateForkBlock,
-		Height:           c.Height,
 		CCRPCForkBlock:   c.CCRPCForkBlock,
 	}
 }
@@ -54,9 +54,9 @@ func (c *Context) WithDb(db modbtypes.DB) *Context {
 	return &Context{
 		Rbt:              c.Rbt,
 		Db:               db,
+		Height:           c.Height,
 		XHedgeForkBlock:  c.XHedgeForkBlock,
 		ShaGateForkBlock: c.ShaGateForkBlock,
-		Height:           c.Height,
 		CCRPCForkBlock:   c.CCRPCForkBlock,
 	}
 }
@@ -69,6 +69,10 @@ func (c *Context) SetShaGateForkBlock(shaGateForkBlock int64) {
 	c.ShaGateForkBlock = shaGateForkBlock
 }
 
+func (c *Context) SetCCRPCForkBlock(CCRPCForkBlock int64) {
+	c.CCRPCForkBlock = CCRPCForkBlock
+}
+
 func (c *Context) SetCurrentHeight(height int64) {
 	c.Height = height
 }
@@ -77,8 +81,12 @@ func (c *Context) IsXHedgeFork() bool {
 	return c.Height >= c.XHedgeForkBlock
 }
 
-func (c *Context) GetCCRPCForkBlock() uint64 {
+func (c *Context) GetCCRPCForkBlock() int64 {
 	return c.CCRPCForkBlock
+}
+
+func (c *Context) IsCCRPCFork() bool {
+	return c.Height >= c.CCRPCForkBlock
 }
 
 func (c *Context) IsShaGateFork() bool {
@@ -95,9 +103,10 @@ func (c *Context) WithRbtCopy() *Context {
 	return &Context{
 		Rbt:              &r,
 		Db:               c.Db,
-		ShaGateForkBlock: c.ShaGateForkBlock,
-		XHedgeForkBlock:  c.XHedgeForkBlock,
 		Height:           c.Height,
+		XHedgeForkBlock:  c.XHedgeForkBlock,
+		ShaGateForkBlock: c.ShaGateForkBlock,
+		CCRPCForkBlock:   c.CCRPCForkBlock,
 	}
 }
 

@@ -44,7 +44,7 @@ func prepareTruck() (*store.TrunkStore, *store.RootStore) {
 
 func prepareCtx(t *store.TrunkStore) *types.Context {
 	rbt := rabbit.NewRabbitStore(t)
-	return types.NewContext(&rbt, nil)
+	return types.NewContext(&rbt, nil, math.MaxInt64)
 }
 
 var (
@@ -88,7 +88,7 @@ func TestTxEngine_DifferentAccount(t *testing.T) {
 	AdjustGasUsed = false
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
-	e := NewEbpTxExec(1, 100, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(1, 100, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	txs := prepareAccAndTx(e)
 	e.SetContext(prepareCtx(trunk))
@@ -132,7 +132,7 @@ func TestTxEngine_SameAccount(t *testing.T) {
 	AdjustGasUsed = false
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
-	e := NewEbpTxExec(5, 100, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(5, 100, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	txs := prepareAccAndTx(e)
 	e.SetContext(prepareCtx(trunk))
@@ -256,7 +256,7 @@ type executeResult struct {
 }
 
 func executeTxs(randomTxs []*gethtypes.Transaction, trunk *store.TrunkStore) executeResult {
-	e := NewEbpTxExec(2000, 200, 30, 2000, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(2000, 200, 30, 2000, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	_ = prepareAccAndTx(e)
 	e.SetContext(prepareCtx(trunk))
@@ -296,7 +296,7 @@ func executeTxs(randomTxs []*gethtypes.Transaction, trunk *store.TrunkStore) exe
 func TestEmptyTxs(t *testing.T) {
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
-	e := NewEbpTxExec(5, 2, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(5, 2, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	require.Equal(t, 0, e.CollectedTxsCount())
 	e.Prepare(0, 0, DefaultTxGasLimit)
@@ -309,7 +309,7 @@ func TestTxCountBiggerThanRunnerCount(t *testing.T) {
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
 	//only 1 runner
-	e := NewEbpTxExec(5, 1, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(5, 1, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	//2 tx
 	txs := prepareAccAndTx(e)
@@ -329,7 +329,7 @@ func TestAccBalanceNotEnough(t *testing.T) {
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
 	//only 1 runner
-	e := NewEbpTxExec(5, 5, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(5, 5, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	//2 tx
 	txs := prepareAccAndTx(e)
@@ -356,7 +356,7 @@ func TestContractCreation(t *testing.T) {
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
 	//only 1 runner
-	e := NewEbpTxExec(5, 5, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(5, 5, 2, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	prepareAccAndTx(e)
 	creationBytecode := hexToBytes(`
@@ -383,7 +383,7 @@ bc221a1460375780636299a6ef146053575b600080fd5b603d607e565b604051
 func TestRandomPrepare(t *testing.T) {
 	trunk, root := prepareTruck()
 	defer closeTestCtx(root)
-	e := NewEbpTxExec(5, 5, 5, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
+	e := NewEbpTxExec(5, 5, 5, 10, &testcase.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
 	e.SetContext(prepareCtx(trunk))
 	txs := prepareAccAndTx(e)
 	e.CollectTx(txs[0])

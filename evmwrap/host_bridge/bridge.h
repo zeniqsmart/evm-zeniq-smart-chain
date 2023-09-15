@@ -107,8 +107,8 @@ struct all_changed {
 };
 
 struct config {
-	bool after_xhedge_fork;
-	uint64_t CCRPCForkBlock;
+	bool IsXHedgeFork;
+	bool IsCCRPCFork;
 };
 
 // Go environment passes information about a block through this struct to C environment

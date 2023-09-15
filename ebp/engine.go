@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"sync"
-	//"fmt"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -59,7 +58,7 @@ type txEngine struct {
 
 	logger log.Logger
 
-	CCRPCForkBlock uint64
+	CCRPCForkBlock int64
 }
 
 func (exec *txEngine) Context() *types.Context {
@@ -162,7 +161,8 @@ func GetEmptyFrontier() Frontier {
 }
 
 func NewEbpTxExec(exeRoundCount, runnerNumber, parallelNum, defaultTxListCap int,
-	s gethtypes.Signer, logger log.Logger, CCRPCForkBlock uint64) *txEngine {
+	s gethtypes.Signer, logger log.Logger, CCRPCForkBlock int64) *txEngine {
+
 	Runners = make([]*TxRunner, runnerNumber)
 	return &txEngine{
 		roundNum:     exeRoundCount,
@@ -270,13 +270,13 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 	gasFee.Mul(gasFee, utils.U256FromSlice32(info.tx.GasPrice[:]))
 	err := SubSenderAccBalance(entry.ctx, sender, gasFee)
 	if err != nil {
-		exec.logger.Debug("prepare::deduct gas fee failed", "txHash", info.tx.HashID.String())
+		exec.logger.Info("prepare::deduct gas fee failed", "txHash", info.tx.HashID.String())
 		entry.addr2Balance[sender] = uint256.NewInt(0)
 		info.errorStr = "not enough balance to pay gasfee"
 		return err
 	} else {
-		if  (info.tx.To == Sep206Address && exec.getCurrHeight() <  exec.CCRPCForkBlock ) ||
-			(info.tx.To == SEP206AddrAsZeniqOnEthereum && exec.getCurrHeight() >= exec.CCRPCForkBlock ) {
+		if  (info.tx.To == Sep206Address && int64(exec.getCurrHeight()) <  exec.CCRPCForkBlock ) ||
+			(info.tx.To == SEP206AddrAsZeniqOnEthereum && int64(exec.getCurrHeight()) >= exec.CCRPCForkBlock ) {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {
@@ -781,7 +781,6 @@ func TransferFromSenderAccToBlackHoleAcc(ctx *types.Context, sender common.Addre
 
 // will lazy init account if acc not exist
 func updateBalance(ctx *types.Context, address common.Address, amount *uint256.Int, isAdd bool) error {
-	// fmt.Printf("updateBalance %v\n",address)
 	acc := ctx.GetAccount(address)
 	if acc == nil {
 		//lazy init

@@ -8,44 +8,43 @@ extern "C" {
 #include "./../evmc/include/evmc/helpers.h"
 }
 
-static inline int64_t get_precompiled_id(const evmc_address& addr) {
-	for(int i=0; i<12; i++) {
-		if(addr.bytes[i] != 0) return -1;
-	}
-	int64_t res=0;
-	for(int i=12; i<20; i++) {
-		res <<= 8;
-		res |= int64_t(uint64_t(addr.bytes[i]));
-	}
-	return res;
-}
+const int64_t SEP109_CONTRACT_ID = 0x5a454e49510004;
+const int64_t SEP101_CONTRACT_ID = 0x5a454e49510003;
+const int64_t SEP206_CONTRACT_ID = 0x5a454e49510002;
+const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001;
 
 static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
 	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
 }
 
-static inline int64_t get_precompiled_id_new(const evmc_address& addr) {
-	const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
-	if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) {
-		return SEP206_CONTRACT_ID;
+static inline int64_t get_precompiled_id(const evmc_address& addr, const config &cfg) {
+	if (cfg.IsCCRPCFork) {
+		const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
+		if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) {
+			return SEP206_CONTRACT_ID;
+		}
 	}
-	return get_precompiled_id(addr);
+	for(int i=0; i<12; i++) {
+		if(addr.bytes[i] != 0) return -1;
+	}
+	int64_t id=0;
+	for(int i=12; i<20; i++) {
+		id <<= 8;
+		id |= int64_t(uint64_t(addr.bytes[i]));
+	}
+	return id;
 }
 
 static inline bool is_precompiled_id(int64_t id, const config cfg) {
-	return (1 <= id && id <= 9) ||
-	       id == STAKING_CONTRACT_ID ||
-	       (id == SEP109_CONTRACT_ID && cfg.after_xhedge_fork) ||
-	       id == SEP101_CONTRACT_ID ||
-	       id == SEP206_CONTRACT_ID;
+	return  1 <= id && id <= 9
+		|| id == STAKING_CONTRACT_ID
+		|| id == SEP109_CONTRACT_ID && cfg.IsXHedgeFork
+		|| id == SEP101_CONTRACT_ID
+		|| id == SEP206_CONTRACT_ID;
 }
 
 static inline bool is_precompiled_addr(const evmc_address& addr, const config cfg) {
-	return is_precompiled_id(get_precompiled_id(addr), cfg);
-}
-
-static inline bool is_precompiled_addr_new(const evmc_address& addr, const config cfg) {
-	return is_precompiled_id(get_precompiled_id_new(addr), cfg);
+	return is_precompiled_id(get_precompiled_id(addr, cfg), cfg);
 }
 
 // following functions wrap C++ member functions into C-style functions, thus
@@ -293,9 +292,6 @@ void evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_addres
 
 	const account_info& acc = txctrl->get_account(beneficiary);
 	bool isprecompiled = is_precompiled_addr(beneficiary, txctrl->get_cfg());
-	if (txctrl->get_block_number() >= txctrl->get_cfg().CCRPCForkBlock) {
-		isprecompiled = is_precompiled_addr_new(beneficiary, txctrl->get_cfg());
-	}
 	bool is_prec = isprecompiled && SELFDESTRUCT_BENEFICIARY_CANNOT_BE_PRECOMPILED;
 	bool zero_value = balance == uint256(0);
 	equalfn_evmc_address equalfn;
@@ -358,13 +354,8 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 		assert(false);
 	}
 
-	//_appHash std::cout<<"_appHash ::call "<<txctrl->get_block_number()<<" tx "<<(int)msg.destination.bytes[0]<<" "<<(int)msg.destination.bytes[1]<<" "<<(int)msg.destination.bytes[2]<<" "<<(int)msg.destination.bytes[2]<<std::endl;
-
 	if(normal_run) {
-		int64_t id = get_precompiled_id(call_msg.destination);
-		if (txctrl->get_block_number() >= txctrl->get_cfg().CCRPCForkBlock) {
-			id = get_precompiled_id_new(call_msg.destination);
-		}
+		int64_t id = get_precompiled_id(call_msg.destination, txctrl->get_cfg());
 		if(is_precompiled_id(id, txctrl->get_cfg())) {
 			result = ctx.run_precompiled_contract(call_msg.destination, id);
 		} else {
@@ -394,26 +385,22 @@ static inline void transfer(tx_control* txctrl, const evmc_address& sender, cons
 	const account_info& acc = txctrl->get_account(destination);
 	bool zero_value = is_zero_bytes32(value.bytes);
 	bool call_precompiled = is_precompiled_addr(destination, txctrl->get_cfg());
-	if (txctrl->get_block_number() >= txctrl->get_cfg().CCRPCForkBlock) {
-		call_precompiled = is_precompiled_addr_new(destination, txctrl->get_cfg());
-	}
 	bool is_empty = (acc.nonce == 0 && acc.balance == uint256(0) && 
 		txctrl->get_bytecode_entry(destination).bytecode.size() == 0);
 	if(acc.is_null() /*&& !call_precompiled*/) {
 		if (zero_value && !call_precompiled) {
-			//_appHash std::cout<<"_appHash transfer nop "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 			*is_nop = true;
 			return;
 		}
-		//_appHash std::cout<<"_appHash transfer new dest "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
+		// std::cout<<"_apphash_evm_ transfer new dest "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 		txctrl->new_account(destination);
 	}
 	if (is_empty && zero_value) { //eip158
-		//_appHash std::cout<<"_appHash transfer destruct "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
+		// std::cout<<"_apphash_evm_ transfer destruct "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 		txctrl->selfdestruct(destination);
 	}
 	if(!zero_value /*&& !call_precompiled*/) {
-		//_appHash std::cout<<"_appHash transfer do "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
+		// std::cout<<"_apphash_evm_ transfer about to do "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
 		txctrl->transfer(sender, destination, u256be_to_u256(value));
 	}
 	*is_nop = false;
@@ -428,10 +415,7 @@ evmc_result evmc_host_context::call() {
 		return evmc_result {.status_code=EVMC_SUCCESS, .gas_left=msg.gas};
 	}
 	evmc_result result;
-	int64_t id = get_precompiled_id(msg.destination);
-	if (txctrl->get_block_number() >= txctrl->get_cfg().CCRPCForkBlock) {
-		id = get_precompiled_id_new(msg.destination);
-	}
+	int64_t id = get_precompiled_id(msg.destination, txctrl->get_cfg());
 	if(is_precompiled_id(id, txctrl->get_cfg())) {
 		result = run_precompiled_contract(msg.destination, id);
 		if(result.status_code != EVMC_SUCCESS) {
@@ -530,6 +514,7 @@ evmc_result evmc_host_context::run_vm(size_t snapshot, const evmc_address* code_
 	if(result.status_code != EVMC_SUCCESS) {
 		txctrl->revert_to_snapshot(snapshot);
 	}
+	std::cout<<"run_vm done"<<std::endl;
 	return result;
 }
 
@@ -766,10 +751,7 @@ inline uint32_t get_selector(const uint8_t* data) { //selector is big-endian byt
 }
 
 evmc_result evmc_host_context::run_precompiled_contract_sep101() {
-	int64_t id = get_precompiled_id(msg.destination);
-	if (txctrl->get_block_number() >= txctrl->get_cfg().CCRPCForkBlock) {
-		id = get_precompiled_id_new(msg.destination);
-	}
+	int64_t id = get_precompiled_id(msg.destination, txctrl->get_cfg());
 	if(id == SEP101_CONTRACT_ID) {// only allow delegatecall
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
@@ -1034,7 +1016,7 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 	uint256 amount = u256be_to_u256(amount_be);
 	evmc_uint256be balance_be = get_balance(source);
 	uint256 margin = static_cast<uint256>(0);
-	if(txctrl->get_cfg().after_xhedge_fork) { //set margin=0.001BCH (10**15)
+	if(txctrl->get_cfg().IsXHedgeFork) { //set margin=0.001Zeniq (10**15)
 		margin = static_cast<uint256>(1000ULL*1000ULL*1000ULL*1000ULL*1000ULL);
 	}
 	if(u256be_to_u256(balance_be) < amount+margin) {
@@ -1071,10 +1053,7 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 }
 
 evmc_result evmc_host_context::run_precompiled_contract_sep206() {
-	int64_t id = get_precompiled_id(msg.destination);
-	if (txctrl->get_block_number() >= txctrl->get_cfg().CCRPCForkBlock) {
-		id = get_precompiled_id_new(msg.destination);
-	}
+	int64_t id = get_precompiled_id(msg.destination, txctrl->get_cfg());
 	if(id != SEP206_CONTRACT_ID) {//forbidden delegateccall
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}

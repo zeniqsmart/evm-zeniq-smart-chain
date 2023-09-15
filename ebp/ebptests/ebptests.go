@@ -98,8 +98,8 @@ func runTestCase(filename string, theCase *tc.TestCase, printLog bool) {
 	trunk = root.GetTrunkStore(1000).(*store.TrunkStore)
 	var chainId big.Int
 	chainId.SetBytes(currBlock.ChainId[:])
-	txEngine := ebp.NewEbpTxExec(10, 100, 32, 100, &tc.DumbSigner{}, log.NewNopLogger(), math.MaxUint64)
-	ctx := types.NewContext(nil, nil)
+	txEngine := ebp.NewEbpTxExec(10, 100, 32, 100, &tc.DumbSigner{}, log.NewNopLogger(), math.MaxInt64)
+	ctx := types.NewContext(nil, nil, math.MaxInt64)
 	rbt = rabbit.NewRabbitStore(trunk)
 	ctx = ctx.WithRbt(&rbt)
 	txEngine.SetContext(ctx)
