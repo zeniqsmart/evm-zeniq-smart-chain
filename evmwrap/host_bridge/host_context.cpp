@@ -514,7 +514,6 @@ evmc_result evmc_host_context::run_vm(size_t snapshot, const evmc_address* code_
 	if(result.status_code != EVMC_SUCCESS) {
 		txctrl->revert_to_snapshot(snapshot);
 	}
-	std::cout<<"run_vm done"<<std::endl;
 	return result;
 }
 
