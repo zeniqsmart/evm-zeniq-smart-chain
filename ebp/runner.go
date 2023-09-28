@@ -352,6 +352,9 @@ func (runner *TxRunner) refundGasFee(ret_value *evmc_result, refund C.uint64_t) 
 
 	var returnedGasFee uint256.Int
 	gasPrice := utils.U256FromSlice32(runner.Tx.GasPrice[:])
+	if gasPrice.GtUint64(MaxGasPrice) {
+		gasPrice = uint256.NewInt(MaxGasPrice)
+	}
 	returnedGasFee.Mul(uint256.NewInt(0).SetUint64(runner.Tx.Gas-gasUsed), gasPrice)
 	acc := types.NewAccountInfo(runner.Ctx.Rbt.Get(k))
 	x := utils.U256FromSlice32(acc.BalanceSlice())
@@ -368,8 +371,11 @@ func (runner *TxRunner) refundGasFee(ret_value *evmc_result, refund C.uint64_t) 
 }
 
 func (runner *TxRunner) GetGasFee() *uint256.Int {
-	return uint256.NewInt(0).Mul(uint256.NewInt(runner.GasUsed),
-		uint256.NewInt(0).SetBytes(runner.Tx.GasPrice[:]))
+	gasPrice := uint256.NewInt(0).SetBytes(runner.Tx.GasPrice[:])
+	if gasPrice.GtUint64(MaxGasPrice) {
+		gasPrice = uint256.NewInt(MaxGasPrice)
+	}
+	return uint256.NewInt(0).Mul(uint256.NewInt(runner.GasUsed), gasPrice)
 }
 
 func convertLog(log *added_log) (res types.EvmLog) {
