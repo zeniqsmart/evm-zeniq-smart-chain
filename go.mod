@@ -64,4 +64,6 @@ replace github.com/vechain/go-ecvrf => github.com/vechain/go-ecvrf v0.0.0-202205
 
 // replace github.com/zeniqsmart/moeingads => ../moeingads
 
-replace github.com/zeniqsmart/moeingdb => ../moeingdb
+// replace github.com/zeniqsmart/moeingdb => ../moeingdb
+
+// replace github.com/tendermint/tendermint => ../tendermint
