@@ -12,17 +12,15 @@ const int64_t SEP109_CONTRACT_ID = 0x5a454e49510004;
 const int64_t SEP101_CONTRACT_ID = 0x5a454e49510003;
 const int64_t SEP206_CONTRACT_ID = 0x5a454e49510002;
 const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001;
+const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
 
 static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
 	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
 }
 
 static inline int64_t get_precompiled_id(const evmc_address& addr, const config &cfg) {
-	if (cfg.IsCCRPCFork) {
-		const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
-		if(address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) {
-			return SEP206_CONTRACT_ID;
-		}
+	if (cfg.IsCCRPCFork && address_equal_inline(addr, SEP206AddrAsZeniqOnEthereum )) {
+		return SEP206_CONTRACT_ID;
 	}
 	for(int i=0; i<12; i++) {
 		if(addr.bytes[i] != 0) return -1;
@@ -445,7 +443,9 @@ evmc_result evmc_host_context::run_precompiled_contract(const evmc_address& addr
 	uint64_t gas_left = msg.gas;
 
 	this->txctrl->call_precompiled_contract((struct evmc_address*)&addr/*drop const*/, (void*)msg.input_data,
-			msg.input_size, &gas_left, &ret_value, &out_of_gas, this->smallbuf, &osize);
+			msg.input_size, &gas_left, &ret_value, &out_of_gas, this->smallbuf, &osize,
+			txctrl->get_cfg().IsCCRPCFork);
+
 	if(out_of_gas != 0) {
 		return evmc_result{.status_code=EVMC_OUT_OF_GAS};
 	}

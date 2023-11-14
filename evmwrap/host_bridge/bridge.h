@@ -163,7 +163,8 @@ typedef void (*bridge_call_precompiled_contract_fn)(struct evmc_address* contrac
                                                     int* ret_value,
                                                     int* out_of_gas,
                                                     struct small_buffer* output_ptr,
-                                                    int* output_size);
+                                                    int* output_size,
+                                                    bool IsCCRPCFork);
 
 typedef evmc_execute_fn (*bridge_query_executor_fn)(const evmc_address* destination);
 
@@ -177,18 +178,18 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
                      const evmc_uint256be* value,
                      const uint8_t* input_data,
                      size_t input_size,
-		     const struct block_info* block,
-		     int handler,
-		     bool need_gas_estimation,
-		     enum evmc_revision revision,
-		     bridge_query_executor_fn query_executor_fn,
-		     bridge_get_creation_counter_fn get_creation_counter_fn,
-		     bridge_get_account_info_fn get_account_info_fn,
-		     bridge_get_bytecode_fn get_bytecode_fn,
-		     bridge_get_value_fn get_value_fn,
-		     bridge_get_block_hash_fn get_block_hash_fn,
-		     bridge_collect_result_fn collect_result_fn,
-		     bridge_call_precompiled_contract_fn call_precompiled_contract_fn);
+                     const struct block_info* block,
+                     int handler,
+                     bool need_gas_estimation,
+                     enum evmc_revision revision,
+                     bridge_query_executor_fn query_executor_fn,
+                     bridge_get_creation_counter_fn get_creation_counter_fn,
+                     bridge_get_account_info_fn get_account_info_fn,
+                     bridge_get_bytecode_fn get_bytecode_fn,
+                     bridge_get_value_fn get_value_fn,
+                     bridge_get_block_hash_fn get_block_hash_fn,
+                     bridge_collect_result_fn collect_result_fn,
+                     bridge_call_precompiled_contract_fn call_precompiled_contract_fn);
 
 #ifdef __cplusplus
 }

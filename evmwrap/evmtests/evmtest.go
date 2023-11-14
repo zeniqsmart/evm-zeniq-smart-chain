@@ -31,11 +31,11 @@ int64_t zero_depth_call_wrap(evmc_bytes32 gas_price,
                      const evmc_bytes32* value,
                      const uint8_t* input_data,
                      size_t input_size,
-		     const struct block_info* block,
-		     int handler,
-		     bool need_gas_estimation,
+                     const struct block_info* block,
+                     int handler,
+                     bool need_gas_estimation,
                      enum evmc_revision revision,
-		     bridge_query_executor_fn query_executor_fn);
+                     bridge_query_executor_fn query_executor_fn);
 */
 import "C"
 

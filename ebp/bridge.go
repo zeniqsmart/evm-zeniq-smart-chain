@@ -40,7 +40,8 @@ extern void call_precompiled_contract (struct evmc_address* contract_addr,
                                        int* ret_value,
                                        int* out_of_gas,
                                        struct small_buffer* output_ptr,
-                                       int* output_size);
+                                       int* output_size,
+                                       bool IsCCRPCFork);
 
 int64_t zero_depth_call_wrap(evmc_bytes32 gas_price,
                              int64_t gas_limit,
@@ -53,7 +54,7 @@ int64_t zero_depth_call_wrap(evmc_bytes32 gas_price,
                              int collector_handler,
                              bool need_gas_estimation,
                              enum evmc_revision revision,
-		             bridge_query_executor_fn query_executor_fn) {
+                             bridge_query_executor_fn query_executor_fn) {
        return zero_depth_call(gas_price,
                              gas_limit,
                              destination,

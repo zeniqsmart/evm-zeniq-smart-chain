@@ -33,7 +33,9 @@ func call_precompiled_contract(contract_addr *evmc_address,
 	ret_value *C.int,
 	out_of_gas *C.int,
 	output_ptr *small_buffer,
-	output_size *C.int) {
+	output_size *C.int,
+	IsCCRPCFork C.bool,
+) {
 	addr := toArr20(contract_addr)
 	contract, ok := vm.PrecompiledContractsIstanbul[addr]
 	if !ok {
