@@ -51,6 +51,8 @@ const (
 	EnableRWList = false
 )
 
+var TotalAmount [32]byte = uint256.NewInt(0).Mul(uint256.NewInt(1e18), uint256.NewInt(2100_0000)).Bytes32()
+
 var PredefinedContractManager map[common.Address]types.SystemContractExecutor
 
 func RegisterPredefinedContract(ctx *types.Context, address common.Address, executor types.SystemContractExecutor) {
@@ -154,6 +156,18 @@ func toHash(bytes32 *evmc_bytes32) (hash common.Hash) {
 		hash[i] = byte(bytes32.bytes[i])
 	}
 	return
+}
+
+// the balance must be less than or equal to TotalAmount
+func checkBalanceSanity(chg_acc *changed_account) bool {
+	for i := 0; i < 32; i++ {
+		if TotalAmount[i] < uint8(chg_acc.balance.bytes[i]) {
+			return false
+		} else if TotalAmount[i] > uint8(chg_acc.balance.bytes[i]) {
+			return true
+		}
+	}
+	return true
 }
 
 func writeSliceWithCBytes32(bz []byte, b32 *evmc_bytes32) {
@@ -424,14 +438,29 @@ func (runner *TxRunner) collectResult(result *all_changed, ret_value *evmc_resul
 		runner.refundGasFee(ret_value, 0)
 		return
 	}
-	runner.OutData = C.GoBytes(unsafe.Pointer(ret_value.output_data), C.int(ret_value.output_size))
+
 	size := int(result.account_num)
+	isSane := true
 	if size != 0 {
 		accounts := (*[1 << 30]changed_account)(unsafe.Pointer(result.accounts))[:size:size]
 		for _, elem := range accounts {
-			runner.changeAccount(&elem)
+			if !checkBalanceSanity(&elem) {
+				isSane = false
+				break
+			}
+		}
+		if isSane {
+			for _, elem := range accounts {
+				runner.changeAccount(&elem)
+			}
 		}
 	}
+	if !isSane {
+		runner.Status = int(C.EVMC_INTERNAL_ERROR)
+		runner.refundGasFee(ret_value, 0)
+		return
+	}
+	runner.OutData = C.GoBytes(unsafe.Pointer(ret_value.output_data), C.int(ret_value.output_size))
 	size = int(result.creation_counter_num)
 	if size != 0 {
 		creation_counters := (*[1 << 30]changed_creation_counter)(unsafe.Pointer(result.creation_counters))[:size:size]

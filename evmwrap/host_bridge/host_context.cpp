@@ -34,11 +34,11 @@ static inline int64_t get_precompiled_id(const evmc_address& addr, const config 
 }
 
 static inline bool is_precompiled_id(int64_t id, const config cfg) {
-	return  1 <= id && id <= 9
-		|| id == STAKING_CONTRACT_ID
-		|| id == SEP109_CONTRACT_ID && cfg.IsXHedgeFork
-		|| id == SEP101_CONTRACT_ID
-		|| id == SEP206_CONTRACT_ID;
+	return     (1 <= id && id <= 9                           )
+		|| (id == STAKING_CONTRACT_ID                    )
+		|| (id == SEP109_CONTRACT_ID && cfg.IsXHedgeFork )
+		|| (id == SEP101_CONTRACT_ID                     )
+		|| (id == SEP206_CONTRACT_ID                     ) ;
 }
 
 static inline bool is_precompiled_addr(const evmc_address& addr, const config cfg) {
