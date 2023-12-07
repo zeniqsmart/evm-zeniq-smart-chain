@@ -95,7 +95,7 @@ size_t evmc_copy_code(struct evmc_host_context* context,
 	return context->copy_code(*address, code_offset, buffer_data, buffer_size);
 }
 
-void evmc_selfdestruct(struct evmc_host_context* context,
+bool evmc_selfdestruct(struct evmc_host_context* context,
                        const evmc_address* address,
                        const evmc_address* beneficiary) {
 	return context->selfdestruct(*address, *beneficiary);
@@ -282,7 +282,7 @@ size_t evmc_host_context::copy_code(const evmc_address& addr, size_t code_offset
 }
 
 // for SELFDESTRUCT
-void evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_address& beneficiary) {
+bool evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_address& beneficiary) {
 	if(!txctrl->is_selfdestructed(addr)) {
 		txctrl->add_refund(SELFDESTRUCT_REFUND_GAS);
 	}
@@ -293,7 +293,7 @@ void evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_addres
 	bool is_prec = isprecompiled && SELFDESTRUCT_BENEFICIARY_CANNOT_BE_PRECOMPILED;
 	bool zero_value = balance == uint256(0);
 	equalfn_evmc_address equalfn;
-	bool self_as_beneficiary = equalfn(beneficiary, this->msg.destination);
+	bool self_as_beneficiary = equalfn(beneficiary, this->msg.recipient);
 	if(acc.is_null() && !is_prec && !zero_value) {
 		txctrl->new_account(beneficiary);
 	}
@@ -309,12 +309,12 @@ void evmc_host_context::selfdestruct(const evmc_address& addr, const evmc_addres
 		txctrl->transfer(addr, beneficiary, balance);
 	}
 
-	txctrl->selfdestruct(addr);
+	return txctrl->selfdestruct(addr);
 }
 
 // load bytecode into this->code before running it
 void evmc_host_context::load_code(const evmc_address& addr) {
-	const account_info& acc = txctrl->get_account(msg.destination);
+	const account_info& acc = txctrl->get_account(msg.recipient);
 	if(acc.is_null()) {
 		this->code = &this->empty_code;
 	}
@@ -339,7 +339,7 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 		break;
 	case EVMC_CALLCODE:
 	case EVMC_DELEGATECALL:
-		ctx.msg.destination = msg.destination;
+		ctx.msg.recipient = msg.recipient;
 		normal_run = true;
 		break;
 	case EVMC_CREATE:
@@ -353,15 +353,15 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 	}
 
 	if(normal_run) {
-		int64_t id = get_precompiled_id(call_msg.destination, txctrl->get_cfg());
+		int64_t id = get_precompiled_id(call_msg.recipient, txctrl->get_cfg());
 		if(is_precompiled_id(id, txctrl->get_cfg())) {
-			result = ctx.run_precompiled_contract(call_msg.destination, id);
+			result = ctx.run_precompiled_contract(call_msg.recipient, id);
 		} else {
-			ctx.load_code(call_msg.destination);
+			ctx.load_code(call_msg.recipient);
 			if(call_msg.kind == EVMC_CALL) {
 				ctx.check_eip158();
 			}
-			result = ctx.run_vm(txctrl->snapshot(), &call_msg.destination);
+			result = ctx.run_vm(txctrl->snapshot(), &call_msg.recipient);
 		}
 	}
 	txctrl->gas_trace_append(result.gas_left);
@@ -371,56 +371,56 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 
 // EIP158 request us to delete empty accounts when they are "touched"
 void evmc_host_context::check_eip158() {
-	const account_info& acc = txctrl->get_account(msg.destination);
+	const account_info& acc = txctrl->get_account(msg.recipient);
 	bool zero_value = is_zero_bytes32(msg.value.bytes);
 	bool is_empty = (acc.nonce == 0 && acc.balance == uint256(0) && this->code->size() == 0);
 	if(is_empty && zero_value) {
-		txctrl->selfdestruct(msg.destination); //eip158
+		txctrl->selfdestruct(msg.recipient); //eip158
 	}
 }
 
-static inline void transfer(tx_control* txctrl, const evmc_address& sender, const evmc_address& destination, const evmc_uint256be& value, bool* is_nop) {
-	const account_info& acc = txctrl->get_account(destination);
+static inline void transfer(tx_control* txctrl, const evmc_address& sender, const evmc_address& recipient, const evmc_uint256be& value, bool* is_nop) {
+	const account_info& acc = txctrl->get_account(recipient);
 	bool zero_value = is_zero_bytes32(value.bytes);
-	bool call_precompiled = is_precompiled_addr(destination, txctrl->get_cfg());
+	bool call_precompiled = is_precompiled_addr(recipient, txctrl->get_cfg());
 	bool is_empty = (acc.nonce == 0 && acc.balance == uint256(0) && 
-		txctrl->get_bytecode_entry(destination).bytecode.size() == 0);
+		txctrl->get_bytecode_entry(recipient).bytecode.size() == 0);
 	if(acc.is_null() /*&& !call_precompiled*/) {
 		if (zero_value && !call_precompiled) {
 			*is_nop = true;
 			return;
 		}
-		// std::cout<<"_apphash_evm_ transfer new dest "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
-		txctrl->new_account(destination);
+		// std::cout<<"_apphash_evm_ transfer new dest "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(recipient)<<std::endl;
+		txctrl->new_account(recipient);
 	}
 	if (is_empty && zero_value) { //eip158
-		// std::cout<<"_apphash_evm_ transfer destruct "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
-		txctrl->selfdestruct(destination);
+		// std::cout<<"_apphash_evm_ transfer destruct "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(recipient)<<std::endl;
+		txctrl->selfdestruct(recipient);
 	}
 	if(!zero_value /*&& !call_precompiled*/) {
-		// std::cout<<"_apphash_evm_ transfer about to do "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(destination)<<std::endl;
-		txctrl->transfer(sender, destination, u256be_to_u256(value));
+		// std::cout<<"_apphash_evm_ transfer about to do "<<txctrl->get_block_number()<< " from "<<to_hex(sender)<<" to "<<to_hex(recipient)<<std::endl;
+		txctrl->transfer(sender, recipient, u256be_to_u256(value));
 	}
 	*is_nop = false;
 }
 
 evmc_result evmc_host_context::call() {
 	size_t snapshot = txctrl->snapshot();
-	load_code(msg.destination);
+	load_code(msg.recipient);
 	bool is_nop;
-	transfer(txctrl, msg.sender, msg.destination, msg.value, &is_nop);
+	transfer(txctrl, msg.sender, msg.recipient, msg.value, &is_nop);
 	if(is_nop) {
 		return evmc_result {.status_code=EVMC_SUCCESS, .gas_left=msg.gas};
 	}
 	evmc_result result;
-	int64_t id = get_precompiled_id(msg.destination, txctrl->get_cfg());
+	int64_t id = get_precompiled_id(msg.recipient, txctrl->get_cfg());
 	if(is_precompiled_id(id, txctrl->get_cfg())) {
-		result = run_precompiled_contract(msg.destination, id);
+		result = run_precompiled_contract(msg.recipient, id);
 		if(result.status_code != EVMC_SUCCESS) {
 			txctrl->revert_to_snapshot(snapshot);
 		}
 	} else {
-		result = run_vm(snapshot, &msg.destination);
+		result = run_vm(snapshot, &msg.recipient);
 	}
 	
 	return result;
@@ -556,7 +556,7 @@ evmc_result evmc_host_context::create_with_contract_addr(const evmc_address& add
 	if(!create_pre_check(addr)) {
 		return evmc_result{.status_code = EVMC_FAILURE, .gas_left = 0};
 	}
-	msg.destination = addr;
+	msg.recipient = addr;
 	bytes input_as_code(msg.input_data, msg.input_size);
 	this->code = &input_as_code;
 	this->codehash = ZERO_BYTES32;
@@ -640,7 +640,7 @@ __inline__ uint64_t rdtsc() {
 
 int64_t zero_depth_call(evmc_uint256be gas_price,
                      int64_t gas_limit,
-                     const evmc_address* destination,
+                     const evmc_address* recipient,
                      const evmc_address* sender,
                      const evmc_uint256be* value,
                      const uint8_t* input_data,
@@ -668,7 +668,7 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.bigbuf = &bigbuf[0],
 		.handler = handler
 	};
-	bool is_contract_creation = is_zero_address(*destination);
+	bool is_contract_creation = is_zero_address(*recipient);
 	int64_t intrinsic = intrinsic_gas(input_data, input_size, is_contract_creation);
 	if(is_contract_creation && intrinsic > gas_limit) {
 		// thus we can create zero account (TransactionSendingToZero)
@@ -692,7 +692,7 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.block_number = block->number,
 		.block_timestamp = block->timestamp,
 		.block_gas_limit = block->gas_limit,
-		.block_difficulty = block->difficulty,
+		.block_prev_randao = block->difficulty,
 		.chain_id = block->chain_id
 	};
 	auto msg = evmc_message {
@@ -700,7 +700,7 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.flags = 0,
 		.depth = 0,
 		.gas = gas_limit,
-		.destination = *destination,
+		.recipient = *recipient,
 		.sender = *sender,
 		.input_data = input_data,
 		.input_size = input_size,
@@ -750,7 +750,7 @@ inline uint32_t get_selector(const uint8_t* data) { //selector is big-endian byt
 }
 
 evmc_result evmc_host_context::run_precompiled_contract_sep101() {
-	int64_t id = get_precompiled_id(msg.destination, txctrl->get_cfg());
+	int64_t id = get_precompiled_id(msg.recipient, txctrl->get_cfg());
 	if(id == SEP101_CONTRACT_ID) {// only allow delegatecall
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
@@ -781,7 +781,7 @@ evmc_result evmc_host_context::run_precompiled_contract_sep101() {
 	evmc_bytes32 key_hash;
 	sha256(msg.input_data + 4 + offset_ptr_count*32 + 32/*length word*/, key_len, key_hash.bytes);
 	if(selector == SELECTOR_SEP101_GET) {
-		const bytes& bz = txctrl->get_value(msg.destination, key_hash);
+		const bytes& bz = txctrl->get_value(msg.recipient, key_hash);
 		int64_t gas = 800;
 		if(bz.size() > 32) { // more gas for extra bytes
 			gas += (bz.size() - 32) * SEP101_GET_GAS_PER_BYTE;
@@ -824,11 +824,10 @@ evmc_result evmc_host_context::run_precompiled_contract_sep101() {
 	if(msg.input_size < 4 + 4*32 + key_words*32 + value_len) {
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
-	evmc_storage_status status = txctrl->set_value(msg.destination, key_hash,
+	evmc_storage_status status = txctrl->set_value(msg.recipient, key_hash,
 			                   bytes_info{.data=value_ptr+32, .size=value_len});
 	switch (status) { // gas for the first 32 bytes
-	case EVMC_STORAGE_UNCHANGED:
-	case EVMC_STORAGE_MODIFIED_AGAIN:
+	case EVMC_STORAGE_ASSIGNED:
 		gas += 800;
 	break;
 	case EVMC_STORAGE_MODIFIED:
@@ -973,7 +972,7 @@ evmc_result evmc_host_context::sep206_approve(bool new_value, bool increase) {
 	memcpy(topics[0].bytes, ApprovalEvent.bytes, 32);
 	memset(topics[1].bytes, 0, 16); memcpy(topics[1].bytes + 12, msg.sender.bytes, 20);
 	memset(topics[2].bytes, 0, 16); memcpy(topics[2].bytes + 12, spender_offset, 20);
-	txctrl->add_log(msg.destination, entry.bytes, 32, topics, 3);
+	txctrl->add_log(msg.recipient, entry.bytes, 32, topics, 3);
 	return evmc_result_from_bool(this->smallbuf->data, true, msg.gas);
 }
 
@@ -982,8 +981,8 @@ evmc_result evmc_host_context::sep206_transfer() {
 	if(msg.input_size != 4 + 64) {
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
-	evmc_address destination = {}; // clear to zero
-	memcpy(destination.bytes, msg.input_data + 4 + 12, 20);
+	evmc_address recipient = {}; // clear to zero
+	memcpy(recipient.bytes, msg.input_data + 4 + 12, 20);
 	evmc_uint256be amount_be;
 	memcpy(amount_be.bytes, msg.input_data + 4 + 32, 32);
 	evmc_uint256be balance_be = get_balance(msg.sender);
@@ -991,13 +990,13 @@ evmc_result evmc_host_context::sep206_transfer() {
 		return evmc_result{.status_code=EVMC_INSUFFICIENT_BALANCE};
 	}
 	bool is_nop;
-	transfer(txctrl, msg.sender, destination, amount_be, &is_nop);
+	transfer(txctrl, msg.sender, recipient, amount_be, &is_nop);
 	if(!is_nop) {
 		evmc_bytes32 topics[3];
 		memcpy(topics[0].bytes, TransaferEvent.bytes, 32);
 		memset(topics[1].bytes, 0, 16); memcpy(topics[1].bytes + 12, msg.sender.bytes, 20);
-		memset(topics[2].bytes, 0, 16); memcpy(topics[2].bytes + 12, destination.bytes, 20);
-		txctrl->add_log(msg.destination, amount_be.bytes, 32, topics, 3);
+		memset(topics[2].bytes, 0, 16); memcpy(topics[2].bytes + 12, recipient.bytes, 20);
+		txctrl->add_log(msg.recipient, amount_be.bytes, 32, topics, 3);
 	}
 	return evmc_result_from_bool(this->smallbuf->data, true, msg.gas);
 }
@@ -1007,9 +1006,9 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 	if(msg.input_size != 4 + 96) {
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
-	evmc_address source, destination;
+	evmc_address source, recipient;
 	memcpy(source.bytes, msg.input_data + 4 + 12, 20);
-	memcpy(destination.bytes, msg.input_data + 4 + 32 + 12, 20);
+	memcpy(recipient.bytes, msg.input_data + 4 + 32 + 12, 20);
 	evmc_uint256be amount_be;
 	memcpy(amount_be.bytes, msg.input_data + 4 + 32 + 32, 32);
 	uint256 amount = u256be_to_u256(amount_be);
@@ -1037,13 +1036,13 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}
 	bool is_nop;
-	transfer(txctrl, source, destination, amount_be, &is_nop);
+	transfer(txctrl, source, recipient, amount_be, &is_nop);
 	if(!is_nop) {
 		evmc_bytes32 topics[3];
 		memcpy(topics[0].bytes, TransaferEvent.bytes, 32);
 		memset(topics[1].bytes, 0, 16); memcpy(topics[1].bytes + 12, source.bytes, 20);
-		memset(topics[2].bytes, 0, 16); memcpy(topics[2].bytes + 12, destination.bytes, 20);
-		txctrl->add_log(msg.destination, amount_be.bytes, 32, topics, 3);
+		memset(topics[2].bytes, 0, 16); memcpy(topics[2].bytes + 12, recipient.bytes, 20);
+		txctrl->add_log(msg.recipient, amount_be.bytes, 32, topics, 3);
 		allowance_value -= amount;
 		u256_to_beptr(allowance_value, entry.bytes); // overwrite the first 32 bytes
 		set_storage_sep206(key, entry);
@@ -1052,7 +1051,7 @@ evmc_result evmc_host_context::sep206_transferFrom() {
 }
 
 evmc_result evmc_host_context::run_precompiled_contract_sep206() {
-	int64_t id = get_precompiled_id(msg.destination, txctrl->get_cfg());
+	int64_t id = get_precompiled_id(msg.recipient, txctrl->get_cfg());
 	if(id != SEP206_CONTRACT_ID) {//forbidden delegateccall
 		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
 	}

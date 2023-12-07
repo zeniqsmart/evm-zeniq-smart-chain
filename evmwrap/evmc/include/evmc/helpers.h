@@ -1,7 +1,6 @@
-/* EVMC: Ethereum Client-VM Connector API.
- * Copyright 2018-2019 The EVMC Authors.
- * Licensed under the Apache License, Version 2.0.
- */
+// EVMC: Ethereum Client-VM Connector API.
+// Copyright 2018 The EVMC Authors.
+// Licensed under the Apache License, Version 2.0.
 
 /**
  * EVMC Helpers
@@ -9,8 +8,6 @@
  * A collection of C helper functions for invoking a VM instance methods.
  * These are convenient for languages where invoking function pointers
  * is "ugly" or impossible (such as Go).
- *
- * It also contains helpers (overloaded operators) for using EVMC types effectively in C++.
  *
  * @defgroup helpers EVMC Helpers
  * @{
@@ -20,6 +17,14 @@
 #include <evmc/evmc.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+#endif
 
 /**
  * Returns true if the VM has a compatible ABI version.
@@ -116,10 +121,12 @@ static void evmc_free_result_memory(const struct evmc_result* result)
 ///
 /// @param status_code  The status code.
 /// @param gas_left     The amount of gas left.
+/// @param gas_refund   The amount of refunded gas.
 /// @param output_data  The pointer to the output.
 /// @param output_size  The output size.
 static inline struct evmc_result evmc_make_result(enum evmc_status_code status_code,
                                                   int64_t gas_left,
+                                                  int64_t gas_refund,
                                                   const uint8_t* output_data,
                                                   size_t output_size)
 {
@@ -144,6 +151,7 @@ static inline struct evmc_result evmc_make_result(enum evmc_status_code status_c
 
     result.status_code = status_code;
     result.gas_left = gas_left;
+    result.gas_refund = gas_refund;
     return result;
 }
 
@@ -285,10 +293,23 @@ static inline const char* evmc_revision_to_string(enum evmc_revision rev)
         return "Berlin";
     case EVMC_LONDON:
         return "London";
+    case EVMC_PARIS:
+        return "Paris";
     case EVMC_SHANGHAI:
         return "Shanghai";
+    case EVMC_CANCUN:
+        return "Cancun";
+    case EVMC_PRAGUE:
+        return "Prague";
     }
     return "<unknown>";
 }
 
 /** @} */
+
+#ifdef __cplusplus
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+}  // extern "C"
+#endif

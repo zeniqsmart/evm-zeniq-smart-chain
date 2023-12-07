@@ -27,7 +27,7 @@ type InternalTxCall struct {
 	Gas int64
 
 	/** The callee of the transaction. */
-	Destination [20]byte `msg:"destination"`
+	Recipient [20]byte `msg:"recipient"`
 
 	/** The caller of the transaction. */
 	Sender [20]byte `msg:"sender"`

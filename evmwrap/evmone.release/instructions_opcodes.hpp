@@ -1,28 +1,17 @@
-// EVMC: Ethereum Client-VM Connector API.
-// Copyright 2018 The EVMC Authors.
-// Licensed under the Apache License, Version 2.0.
+// evmone: Fast Ethereum Virtual Machine implementation
+// Copyright 2022 The evmone Authors.
+// SPDX-License-Identifier: Apache-2.0
 
-/**
- * EVM Instruction Tables
- *
- * A collection of metrics for EVM1 instruction set.
- *
- * @defgroup instructions EVM Instructions
- * @{
- */
 #pragma once
 
-#include <evmc/evmc.h>
-#include <evmc/utils.h>
+namespace evmone
+{
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * The list of EVM 1 opcodes from every EVM revision.
- */
-enum evmc_opcode
+/// The list of EVM opcodes from every EVM revision.
+///
+/// This is not enum class because we want implicit conversion to integers,
+/// e.g. for usage as an array index.
+enum Opcode : uint8_t
 {
     OP_STOP = 0x00,
     OP_ADD = 0x01,
@@ -80,6 +69,8 @@ enum evmc_opcode
     OP_CHAINID = 0x46,
     OP_SELFBALANCE = 0x47,
     OP_BASEFEE = 0x48,
+    OP_BLOBHASH = 0x49,
+    OP_BLOBBASEFEE = 0x4a,
 
     OP_POP = 0x50,
     OP_MLOAD = 0x51,
@@ -93,7 +84,9 @@ enum evmc_opcode
     OP_MSIZE = 0x59,
     OP_GAS = 0x5a,
     OP_JUMPDEST = 0x5b,
-
+    OP_TLOAD = 0x5c,
+    OP_TSTORE = 0x5d,
+    OP_MCOPY = 0x5e,
     OP_PUSH0 = 0x5f,
     OP_PUSH1 = 0x60,
     OP_PUSH2 = 0x61,
@@ -165,6 +158,20 @@ enum evmc_opcode
     OP_LOG3 = 0xa3,
     OP_LOG4 = 0xa4,
 
+    OP_RJUMP = 0xe0,
+    OP_RJUMPI = 0xe1,
+    OP_RJUMPV = 0xe2,
+    OP_CALLF = 0xe3,
+    OP_RETF = 0xe4,
+    OP_JUMPF = 0xe5,
+
+    OP_DUPN = 0xe6,
+    OP_SWAPN = 0xe7,
+    OP_DATALOAD = 0xe8,
+    OP_DATALOADN = 0xe9,
+    OP_DATASIZE = 0xea,
+    OP_DATACOPY = 0xeb,
+
     OP_CREATE = 0xf0,
     OP_CALL = 0xf1,
     OP_CALLCODE = 0xf2,
@@ -178,50 +185,4 @@ enum evmc_opcode
     OP_INVALID = 0xfe,
     OP_SELFDESTRUCT = 0xff
 };
-
-/**
- * Metrics for an EVM 1 instruction.
- *
- * Small integer types are used here to make the tables of metrics smaller.
- */
-struct evmc_instruction_metrics
-{
-    /** The instruction gas cost. */
-    int16_t gas_cost;
-
-    /** The minimum number of the EVM stack items required for the instruction. */
-    int8_t stack_height_required;
-
-    /**
-     * The EVM stack height change caused by the instruction execution,
-     * i.e. stack height _after_ execution - stack height _before_ execution.
-     */
-    int8_t stack_height_change;
-};
-
-/**
- * Get the table of the EVM 1 instructions metrics.
- *
- * @param revision  The EVM revision.
- * @return          The pointer to the array of 256 instruction metrics. Null pointer in case
- *                  an invalid EVM revision provided.
- */
-EVMC_EXPORT const struct evmc_instruction_metrics* evmc_get_instruction_metrics_table(
-    enum evmc_revision revision);
-
-/**
- * Get the table of the EVM 1 instruction names.
- *
- * The entries for undefined instructions contain null pointers.
- *
- * @param revision  The EVM revision.
- * @return          The pointer to the array of 256 instruction names. Null pointer in case
- *                  an invalid EVM revision provided.
- */
-EVMC_EXPORT const char* const* evmc_get_instruction_names_table(enum evmc_revision revision);
-
-#ifdef __cplusplus
-}
-#endif
-
-/** @} */
+}  // namespace evmone

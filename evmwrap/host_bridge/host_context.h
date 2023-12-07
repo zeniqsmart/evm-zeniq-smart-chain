@@ -139,7 +139,7 @@ public:
 	size_t get_code_size(const evmc_address& addr);
 	const evmc_bytes32& get_code_hash(const evmc_address& addr);
 	size_t copy_code(const evmc_address& addr, size_t code_offset, uint8_t* buffer_data, size_t buffer_size);
-	void selfdestruct(const evmc_address& addr, const evmc_address& beneficiary);
+	bool selfdestruct(const evmc_address& addr, const evmc_address& beneficiary);
 	const evmc_tx_context& get_tx_context() {
 		return txctrl->get_tx_context();
 	}

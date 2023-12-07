@@ -17,7 +17,7 @@ import (
 //#include "../evmwrap/host_bridge/bridge.h"
 //int64_t zero_depth_call_wrap(evmc_bytes32 gas_price,
 //                             int64_t gas_limit,
-//                             const evmc_address* destination,
+//                             const evmc_address* recipient,
 //                             const evmc_address* sender,
 //                             const evmc_bytes32* value,
 //                             const uint8_t* input_data,
@@ -415,7 +415,7 @@ func convertTxCalls(data_ptr C.size_t, msg *internal_tx_call) (txCall types.Inte
 	txCall.Flags = uint32(msg.flags)
 	txCall.Depth = int32(msg.depth)
 	txCall.Gas = int64(msg.gas)
-	txCall.Destination = toAddress(&msg.destination)
+	txCall.Recipient = toAddress(&msg.recipient)
 	txCall.Sender = toAddress(&msg.sender)
 	txCall.Input = C.GoBytes(unsafe.Pointer(uintptr(data_ptr+msg.input_offset)), C.int(msg.input_size))
 	txCall.Value = toHash(&msg.value)

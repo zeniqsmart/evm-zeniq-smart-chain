@@ -70,7 +70,7 @@ struct internal_tx_call {
 	uint32_t flags;
 	int32_t depth;
 	int64_t gas;
-	evmc_address destination;
+	evmc_address recipient;
 	evmc_address sender;
 	size_t input_offset;
 	size_t input_size;
@@ -166,14 +166,14 @@ typedef void (*bridge_call_precompiled_contract_fn)(struct evmc_address* contrac
                                                     int* output_size,
                                                     bool IsCCRPCFork);
 
-typedef evmc_execute_fn (*bridge_query_executor_fn)(const evmc_address* destination);
+typedef evmc_execute_fn (*bridge_query_executor_fn)(const evmc_address* recipient);
 
 // Since we want to compile evmwrap into a dynamic library (.so), it cannot have unlinked external functions.
 // Thus, there is only one way to allow C to call Go: pass function pointers from Go to C.
 // The following bridge_*_fn parameters are doing this job.
 int64_t zero_depth_call(evmc_uint256be gas_price,
                      int64_t gas_limit,
-                     const evmc_address* destination,
+                     const evmc_address* recipient,
                      const evmc_address* sender,
                      const evmc_uint256be* value,
                      const uint8_t* input_data,

@@ -1,17 +1,20 @@
 OBJS = \
-   analysis.o \
+   advanced_analysis.o \
    baseline.o \
    baseline_instruction_table.o \
-   execution.o \
-   instructions.o \
+   advanced_execution.o \
+   instructions_storage.o \
    instructions_calls.o \
+   advanced_instructions.o \
    tracing.o \
+   cpu_check.o \
+   eof.o \
    vm.o \
 
 all : ${OBJS}
 
 %.o : %.cpp
-	g++ -O3 -static -std=c++17 -c -I ./include -I ../evmc/include/ -I ../intx/include/ -I ../keccak/include -o $@ -c $<
+	g++ -O3 -static -std=c++20 -c -DEVMONE_X86_64_ARCH_LEVEL=2 -DPROJECT_VERSION='"11.0.0"' -I ./include -I ../evmc/include/ -I ../intx/include/ -I ../keccak/include -o $@ -c $<
 
 clean:
 	rm *.o

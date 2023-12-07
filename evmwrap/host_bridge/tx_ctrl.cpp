@@ -456,10 +456,10 @@ void tx_control::set_bytecode(const evmc_address& addr, const bytes& code, const
 	journal.push_back(e);
 }
 
-void tx_control::selfdestruct(const evmc_address& addr) {
+bool tx_control::selfdestruct(const evmc_address& addr) {
 	const account_info& acc_info = cstate.get_account(addr);
 	if(acc_info.selfdestructed) { // During a TX, a contract can be selfdestructed many times.
-		return;
+		return false;
 	}
 	// for selfdestructed, the account and the bytecode must be deleted seperately, because
 	// they are stored seperately.
@@ -472,6 +472,7 @@ void tx_control::selfdestruct(const evmc_address& addr) {
 	e.bytecode_deletion.addr = addr;
 	cstate.delete_bytecode(addr, &e.bytecode_deletion.old_dirty);
 	journal.push_back(e);
+	return true;
 }
 
 // for SSTORE's gas&refund calculation, we must return correct evmc_storage_status according to EIP-2200
@@ -489,7 +490,7 @@ evmc_storage_status tx_control::set_value(uint64_t sequence, const evmc_bytes32&
 	const bytes& origin = cstate.get_origin_value(sequence, key);
 	//If current value equals new value (this is a no-op), SLOAD_GAS is deducted.
 	if(e.prev_value == new_value) {
-		return EVMC_STORAGE_UNCHANGED;
+		return EVMC_STORAGE_ASSIGNED;
 	}
 	//If current value does not equal new value:
 	//If original value equals current value, that is, 
@@ -533,7 +534,7 @@ evmc_storage_status tx_control::set_value(uint64_t sequence, const evmc_bytes32&
 				add_refund(SSTORE_RESET_GAS - SLOAD_GAS);
 			}
 		}
-		return EVMC_STORAGE_MODIFIED_AGAIN;
+		return EVMC_STORAGE_ASSIGNED;
 	}
 }
 

@@ -3,33 +3,55 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "baseline_instruction_table.hpp"
-#include "instruction_traits.hpp"
-#include <cassert>
+#include "instructions_traits.hpp"
 
 namespace evmone::baseline
 {
-const InstructionTable& get_baseline_instruction_table(evmc_revision rev) noexcept
+namespace
 {
-    static constexpr auto instruction_tables = []() noexcept {
-        std::array<InstructionTable, EVMC_MAX_REVISION + 1> tables{};
-        for (size_t r = EVMC_FRONTIER; r <= EVMC_MAX_REVISION; ++r)
+constexpr auto common_cost_tables = []() noexcept {
+    std::array<CostTable, EVMC_MAX_REVISION + 1> tables{};
+    for (size_t r = EVMC_FRONTIER; r <= EVMC_MAX_REVISION; ++r)
+    {
+        auto& table = tables[r];
+        for (size_t i = 0; i < table.size(); ++i)
         {
-            auto& table = tables[r];
-            for (size_t i = 0; i < table.size(); ++i)
-            {
-                auto& t = table[i];
-                t.gas_cost = instr::gas_costs[r][i];  // Include instr::undefined in the table.
-                t.stack_height_required = instr::traits[i].stack_height_required;
-
-                // Because any instruction can increase stack height at most of 1,
-                // stack overflow can only happen if stack height is already at the limit.
-                assert(instr::traits[i].stack_height_change <= 1);
-                t.can_overflow_stack = instr::traits[i].stack_height_change > 0;
-            }
+            table[i] = instr::gas_costs[r][i];  // Include instr::undefined in the table.
         }
-        return tables;
-    }();
+    }
+    return tables;
+}();
 
-    return instruction_tables[rev];
+constexpr auto legacy_cost_tables = []() noexcept {
+    auto tables = common_cost_tables;
+    tables[EVMC_PRAGUE][OP_RJUMP] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_RJUMPI] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_RJUMPV] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_CALLF] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_RETF] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_JUMPF] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_DATALOAD] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_DATALOADN] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_DATASIZE] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_DATACOPY] = instr::undefined;
+    return tables;
+}();
+
+constexpr auto eof_cost_tables = []() noexcept {
+    auto tables = common_cost_tables;
+    tables[EVMC_PRAGUE][OP_JUMP] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_JUMPI] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_PC] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_CALLCODE] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_SELFDESTRUCT] = instr::undefined;
+    return tables;
+}();
+
+}  // namespace
+
+const CostTable& get_baseline_cost_table(evmc_revision rev, uint8_t eof_version) noexcept
+{
+    const auto& tables = (eof_version == 0) ? legacy_cost_tables : eof_cost_tables;
+    return tables[rev];
 }
 }  // namespace evmone::baseline

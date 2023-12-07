@@ -12,7 +12,6 @@ import (
 	"path"
 	"strings"
 	"unsafe"
-	"math"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
@@ -26,7 +25,7 @@ import (
 #include "../host_bridge/bridge.h"
 int64_t zero_depth_call_wrap(evmc_bytes32 gas_price,
                      int64_t gas_limit,
-                     const evmc_address* destination,
+                     const evmc_address* recipient,
                      const evmc_address* sender,
                      const evmc_bytes32* value,
                      const uint8_t* input_data,

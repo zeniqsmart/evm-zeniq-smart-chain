@@ -256,7 +256,7 @@ public:
 		itx_call.flags = msg.flags;
 		itx_call.depth = msg.depth;
 		itx_call.gas = msg.gas;
-		itx_call.destination = msg.destination;
+		itx_call.recipient = msg.recipient;
 		itx_call.sender = msg.sender;
 		itx_call.input_offset = payload_data.size();
 		itx_call.input_size = msg.input_size;
@@ -402,7 +402,7 @@ public:
 		if(!executor) { // fall back to the interpreter
 			executor = execute_fn;
 		}
-		//std::cout<<"query "<<to_hex(msg->destination)<<" "<<size_t(executor)<<std::endl;
+		//std::cout<<"query "<<to_hex(msg->recipient)<<" "<<size_t(executor)<<std::endl;
 		return executor(vm, host, context, rev, msg, code, code_size);
 	}
 	// a snapshot is just a position of the journal entry list
@@ -446,7 +446,7 @@ public:
 		cstate.update_bytecode(addr, code, codehash);
 	}
 
-	void selfdestruct(const evmc_address& addr);
+	bool selfdestruct(const evmc_address& addr);
 	evmc_bytes32 get_block_hash(uint64_t height) {
 		return world->get_block_hash(height);
 	}
