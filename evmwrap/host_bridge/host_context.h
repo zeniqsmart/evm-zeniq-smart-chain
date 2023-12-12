@@ -44,8 +44,6 @@ const uint32_t SEP206_TRANSFERFROM_GAS = 40000;
 
 const bool SELFDESTRUCT_BENEFICIARY_CANNOT_BE_PRECOMPILED = false;
 
-extern evmc_bytes32 ZERO_BYTES32;
-
 evmc_address create_contract_addr(const evmc_address& creater, uint64_t nonce);
 
 evmc_address create2_contract_addr(const evmc_address& creater, const evmc_bytes32& salt, const evmc_bytes32& codehash);
@@ -100,6 +98,7 @@ public:
 		evmc_bytes32 result;
 		const bytes& bz = txctrl->get_value(addr, key);
 		if(bz.size() == 0) { // if the underlying KV pair does not exist, return all zero
+			static evmc_bytes32 ZERO_BYTES32 = {};
 			return ZERO_BYTES32;
 		}
 		assert(bz.size() >= 32);

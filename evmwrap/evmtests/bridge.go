@@ -1,7 +1,7 @@
 package main
 
 /*
-#cgo linux LDFLAGS: -l:libevmwrap.a -L../host_bridge -lstdc++ -ldl
+#cgo linux LDFLAGS: -l:libevmwrap.so -L../host_bridge -lstdc++ -ldl
 #cgo darwin LDFLAGS: -levmwrap -L../host_bridge -lstdc++ -ldl
 #include <dlfcn.h>
 #include <stdlib.h>

@@ -509,7 +509,7 @@ evmc_result evmc_host_context::run_vm(size_t snapshot, const evmc_address* code_
 	if(this->code->size() == 0) {
 		return evmc_result{.status_code=EVMC_SUCCESS, .gas_left=msg.gas}; // do nothing
 	}
-	evmc_result result = txctrl->execute(nullptr, &HOST_IFC, this, this->revision, &msg,
+	evmc_result result = txctrl->execute(&HOST_IFC, this, this->revision, &msg,
 			code_addr, this->code->data(), this->code->size());
 	if(result.status_code != EVMC_SUCCESS) {
 		txctrl->revert_to_snapshot(snapshot);
@@ -707,7 +707,7 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.value = *value
 	};
 	evmc_vm* vm = evmc_create_evmone();
-	tx_control txctrl(&r, tx_context, vm->execute, query_executor_fn,
+	tx_control txctrl(&r, tx_context, vm, query_executor_fn,
 			call_precompiled_contract_fn, need_gas_estimation, block->cfg);
 	small_buffer smallbuf;
 	evmc_host_context ctx(&txctrl, msg, &smallbuf, revision);

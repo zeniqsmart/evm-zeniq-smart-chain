@@ -357,7 +357,7 @@ class tx_control {
 	cached_state cstate;
 	world_state_reader* world;
 	evmc_tx_context tx_context;
-	evmc_execute_fn execute_fn;
+	evmc_vm* vm;
 	bridge_query_executor_fn query_executor_fn;
 	bool need_gas_estimation;
 	config cfg;
@@ -365,9 +365,10 @@ public:
 	// this function provides precompile contracts' functionality from Go to C
 	bridge_call_precompiled_contract_fn call_precompiled_contract;
 
-	tx_control(world_state_reader* r, const evmc_tx_context& c, evmc_execute_fn f,
+	
+	tx_control(world_state_reader* r, const evmc_tx_context& c, evmc_vm* a_vm,
 		bridge_query_executor_fn qef, bridge_call_precompiled_contract_fn cpc, bool nge, const config cfg):
-		journal(), cstate(r), world(r), tx_context(c), execute_fn(f), query_executor_fn(qef),
+		journal(), cstate(r), world(r), tx_context(c), vm(a_vm), query_executor_fn(qef),
 		need_gas_estimation(nge), cfg(cfg), call_precompiled_contract(cpc) {
 		journal.reserve(100);
 		if(need_gas_estimation) {
@@ -387,22 +388,23 @@ public:
 		if(need_gas_estimation) gas_trace.push_back(gas);
 	}
 	// Evmone calls this function to execute another smart contract
-	evmc_result execute(struct evmc_vm* vm,
-	                    const struct evmc_host_interface* host,
-	                    struct evmc_host_context* context,
-	                    enum evmc_revision rev,
-	                    const struct evmc_message* msg,
-			    const struct evmc_address* code_addr,
-	                    uint8_t const* code,
-	                    size_t code_size) {
+	evmc_result execute(const struct evmc_host_interface* host,
+                        struct evmc_host_context* context,
+                        enum evmc_revision rev,
+                        const struct evmc_message* msg,
+                        const struct evmc_address* code_addr,
+                        uint8_t const* code,
+                        size_t code_size) {
 		evmc_execute_fn executor = nullptr;
 		if(query_executor_fn && code_addr) { // Check AOT
+			std::cout<<"segxc AOT executor"<<std::endl;
 			executor = query_executor_fn(code_addr);
 		}
 		if(!executor) { // fall back to the interpreter
-			executor = execute_fn;
+			std::cout<<"segxc interpreter"<<std::endl;
+			executor = vm->execute;
 		}
-		//std::cout<<"query "<<to_hex(msg->recipient)<<" "<<size_t(executor)<<std::endl;
+		// std::cout<<"segxc query "<<to_hex(msg->recipient)<<" "<<size_t(executor)<<std::endl;
 		return executor(vm, host, context, rev, msg, code, code_size);
 	}
 	// a snapshot is just a position of the journal entry list
