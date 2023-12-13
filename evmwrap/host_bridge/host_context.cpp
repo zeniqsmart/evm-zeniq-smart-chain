@@ -837,6 +837,11 @@ evmc_result evmc_host_context::run_precompiled_contract_sep101() {
 	case EVMC_STORAGE_ADDED:
 		gas += 20000;
 	break;
+	case EVMC_STORAGE_DELETED_ADDED: break;
+	case EVMC_STORAGE_MODIFIED_DELETED: break;
+	case EVMC_STORAGE_DELETED_RESTORED: break;
+	case EVMC_STORAGE_ADDED_DELETED: break;
+	case EVMC_STORAGE_MODIFIED_RESTORED: break;
 	}
 	if(gas > msg.gas) {
 		return evmc_result{.status_code=EVMC_OUT_OF_GAS};
