@@ -397,11 +397,9 @@ public:
                         size_t code_size) {
 		evmc_execute_fn executor = nullptr;
 		if(query_executor_fn && code_addr) { // Check AOT
-			std::cout<<"segxc AOT executor"<<std::endl;
 			executor = query_executor_fn(code_addr);
 		}
 		if(!executor) { // fall back to the interpreter
-			std::cout<<"segxc interpreter"<<std::endl;
 			executor = vm->execute;
 		}
 		// std::cout<<"segxc query "<<to_hex(msg->recipient)<<" "<<size_t(executor)<<std::endl;
