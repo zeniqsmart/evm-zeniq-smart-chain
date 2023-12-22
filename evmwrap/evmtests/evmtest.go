@@ -12,6 +12,7 @@ import (
 	"path"
 	"strings"
 	"unsafe"
+	"math"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"

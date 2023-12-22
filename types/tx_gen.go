@@ -560,10 +560,10 @@ func (z *InternalTxCall) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Gas")
 				return
 			}
-		case "recipient":
-			err = dc.ReadExactBytes((z.Recipient)[:])
+		case "destination":
+			err = dc.ReadExactBytes((z.Destination)[:])
 			if err != nil {
-				err = msgp.WrapError(err, "Recipient")
+				err = msgp.WrapError(err, "Destination")
 				return
 			}
 		case "sender":
@@ -638,14 +638,14 @@ func (z *InternalTxCall) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Gas")
 		return
 	}
-	// write "recipient"
-	err = en.Append(0xa9, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74)
+	// write "destination"
+	err = en.Append(0xab, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
-	err = en.WriteBytes((z.Recipient)[:])
+	err = en.WriteBytes((z.Destination)[:])
 	if err != nil {
-		err = msgp.WrapError(err, "Recipient")
+		err = msgp.WrapError(err, "Destination")
 		return
 	}
 	// write "sender"
@@ -697,9 +697,9 @@ func (z *InternalTxCall) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "Gas"
 	o = append(o, 0xa3, 0x47, 0x61, 0x73)
 	o = msgp.AppendInt64(o, z.Gas)
-	// string "recipient"
-	o = append(o, 0xa9, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74)
-	o = msgp.AppendBytes(o, (z.Recipient)[:])
+	// string "destination"
+	o = append(o, 0xab, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	o = msgp.AppendBytes(o, (z.Destination)[:])
 	// string "sender"
 	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
 	o = msgp.AppendBytes(o, (z.Sender)[:])
@@ -754,10 +754,10 @@ func (z *InternalTxCall) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Gas")
 				return
 			}
-		case "recipient":
-			bts, err = msgp.ReadExactBytes(bts, (z.Recipient)[:])
+		case "destination":
+			bts, err = msgp.ReadExactBytes(bts, (z.Destination)[:])
 			if err != nil {
-				err = msgp.WrapError(err, "Recipient")
+				err = msgp.WrapError(err, "Destination")
 				return
 			}
 		case "sender":
@@ -792,7 +792,7 @@ func (z *InternalTxCall) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *InternalTxCall) Msgsize() (s int) {
-	s = 1 + 5 + msgp.IntSize + 6 + msgp.Uint32Size + 6 + msgp.Int32Size + 4 + msgp.Int64Size + 10 + msgp.ArrayHeaderSize + (20 * (msgp.ByteSize)) + 7 + msgp.ArrayHeaderSize + (20 * (msgp.ByteSize)) + 6 + msgp.BytesPrefixSize + len(z.Input) + 6 + msgp.ArrayHeaderSize + (32 * (msgp.ByteSize))
+	s = 1 + 5 + msgp.IntSize + 6 + msgp.Uint32Size + 6 + msgp.Int32Size + 4 + msgp.Int64Size + 12 + msgp.ArrayHeaderSize + (20 * (msgp.ByteSize)) + 7 + msgp.ArrayHeaderSize + (20 * (msgp.ByteSize)) + 6 + msgp.BytesPrefixSize + len(z.Input) + 6 + msgp.ArrayHeaderSize + (32 * (msgp.ByteSize))
 	return
 }
 

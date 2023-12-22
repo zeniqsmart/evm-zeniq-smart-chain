@@ -123,7 +123,7 @@ inline evmc_status_code check_requirements(const CostTable& cost_table, int64_t&
         // Negative cost marks an undefined instruction.
         // This check must be first to produce correct error code.
         if (INTX_UNLIKELY(gas_cost < 0))
-            return EVMC_UNDEFINED_INSTRUCTION;
+        return EVMC_UNDEFINED_INSTRUCTION;
     }
 
     // Check stack requirements first. This is order is not required,
@@ -140,7 +140,7 @@ inline evmc_status_code check_requirements(const CostTable& cost_table, int64_t&
         // Check stack underflow using pointer comparison <= (better optimization).
         static constexpr auto min_offset = instr::traits[Op].stack_height_required - 1;
         if (INTX_UNLIKELY(stack_top <= stack_bottom + min_offset))
-            return EVMC_STACK_UNDERFLOW;
+        return EVMC_STACK_UNDERFLOW;
     }
 
     if (INTX_UNLIKELY((gas_left -= gas_cost) < 0))
@@ -212,10 +212,10 @@ template <Opcode Op>
 {
     if (const auto status = check_requirements<Op>(cost_table, gas, pos.stack_top, stack_bottom);
         status != EVMC_SUCCESS)
-    {
-        state.status = status;
+        {
+            state.status = status;
         return {nullptr, pos.stack_top};
-    }
+        }
     const auto new_pos = invoke(instr::core::impl<Op>, pos, gas, state);
     const auto new_stack_top = pos.stack_top + instr::traits[Op].stack_height_change;
     return {new_pos, new_stack_top};
@@ -232,7 +232,7 @@ int64_t dispatch(const CostTable& cost_table, ExecutionState& state, int64_t gas
     Position position{code, stack_bottom};
 
     while (true)  // Guaranteed to terminate because padded code ends with STOP.
-    {
+        {
         if constexpr (TracingEnabled)
         {
             const auto offset = static_cast<uint32_t>(position.code_it - code);
@@ -246,7 +246,7 @@ int64_t dispatch(const CostTable& cost_table, ExecutionState& state, int64_t gas
 
         const auto op = *position.code_it;
         switch (op)
-        {
+            {
 #define ON_OPCODE(OPCODE)                                                                     \
     case OPCODE:                                                                              \
         ASM_COMMENT(OPCODE);                                                                  \
@@ -269,8 +269,8 @@ int64_t dispatch(const CostTable& cost_table, ExecutionState& state, int64_t gas
         default:
             state.status = EVMC_UNDEFINED_INSTRUCTION;
             return gas;
+            }
         }
-    }
     intx::unreachable();
 }
 
@@ -334,19 +334,19 @@ evmc_result execute(
 
     auto* tracer = vm.get_tracer();
     if (INTX_UNLIKELY(tracer != nullptr))
-    {
+        {
         tracer->notify_execution_start(state.rev, *state.msg, analysis.executable_code);
         gas = dispatch<true>(cost_table, state, gas, code.data(), tracer);
-    }
+        }
     else
-    {
+        {
 #if EVMONE_CGOTO_SUPPORTED
         if (vm.cgoto)
             gas = dispatch_cgoto(cost_table, state, gas, code.data());
         else
 #endif
             gas = dispatch<false>(cost_table, state, gas, code.data());
-    }
+        }
 
     const auto gas_left = (state.status == EVMC_SUCCESS || state.status == EVMC_REVERT) ? gas : 0;
     const auto gas_refund = (state.status == EVMC_SUCCESS) ? state.gas_refund : 0;

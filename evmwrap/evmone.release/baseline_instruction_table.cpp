@@ -11,15 +11,15 @@ namespace
 {
 constexpr auto common_cost_tables = []() noexcept {
     std::array<CostTable, EVMC_MAX_REVISION + 1> tables{};
-    for (size_t r = EVMC_FRONTIER; r <= EVMC_MAX_REVISION; ++r)
-    {
-        auto& table = tables[r];
-        for (size_t i = 0; i < table.size(); ++i)
+        for (size_t r = EVMC_FRONTIER; r <= EVMC_MAX_REVISION; ++r)
         {
+            auto& table = tables[r];
+            for (size_t i = 0; i < table.size(); ++i)
+            {
             table[i] = instr::gas_costs[r][i];  // Include instr::undefined in the table.
+            }
         }
-    }
-    return tables;
+        return tables;
 }();
 
 constexpr auto legacy_cost_tables = []() noexcept {

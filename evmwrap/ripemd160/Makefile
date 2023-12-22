@@ -1,9 +1,9 @@
 OBJS = memzero.o ripemd160.o
 
-all: ${OBJS}
+all : ${OBJS}
 
-%.o: %.c
-	gcc -O0 -g -fPIC -c -o $@ -c $<
+%.o : %.c
+	gcc -O3 -static -c -o $@ -c $<
 
 clean:
 	rm *.o

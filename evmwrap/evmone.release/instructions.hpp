@@ -1,5 +1,5 @@
 // evmone: Fast Ethereum Virtual Machine implementation
-// Copyright 2019 The evmone Authors.
+// Copyright 2019-2020 The evmone Authors.
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -165,30 +165,35 @@ inline void mul(StackTop stack) noexcept
 inline void sub(StackTop stack) noexcept
 {
     stack[1] = stack[0] - stack[1];
+    stack.pop();
 }
 
 inline void div(StackTop stack) noexcept
 {
     auto& v = stack[1];
     v = v != 0 ? stack[0] / v : 0;
+    stack.pop();
 }
 
 inline void sdiv(StackTop stack) noexcept
 {
     auto& v = stack[1];
     v = v != 0 ? intx::sdivrem(stack[0], v).quot : 0;
+    stack.pop();
 }
 
 inline void mod(StackTop stack) noexcept
 {
     auto& v = stack[1];
     v = v != 0 ? stack[0] % v : 0;
+    stack.pop();
 }
 
 inline void smod(StackTop stack) noexcept
 {
     auto& v = stack[1];
     v = v != 0 ? intx::sdivrem(stack[0], v).rem : 0;
+    stack.pop();
 }
 
 inline void addmod(StackTop stack) noexcept
@@ -201,9 +206,9 @@ inline void addmod(StackTop stack) noexcept
 
 inline void mulmod(StackTop stack) noexcept
 {
-    const auto& x = stack[0];
-    const auto& y = stack[1];
-    auto& m = stack[2];
+    const auto& x = stack.pop();
+    const auto& y = stack.pop();
+    auto& m = stack.top();
     m = m != 0 ? intx::mulmod(x, y, m) : 0;
 }
 
@@ -228,31 +233,13 @@ inline void signextend(StackTop stack) noexcept
     const auto& ext = stack.pop();
     auto& x = stack.top();
 
-    if (ext < 31)  // For 31 we also don't need to do anything.
+    if (ext < 31)
     {
-        const auto e = ext[0];  // uint256 -> uint64.
-        const auto sign_word_index =
-            static_cast<size_t>(e / sizeof(e));      // Index of the word with the sign bit.
-        const auto sign_byte_index = e % sizeof(e);  // Index of the sign byte in the sign word.
-        auto& sign_word = x[sign_word_index];
-
-        const auto sign_byte_offset = sign_byte_index * 8;
-        const auto sign_byte = sign_word >> sign_byte_offset;  // Move sign byte to position 0.
-
-        // Sign-extend the "sign" byte and move it to the right position. Value bits are zeros.
-        const auto sext_byte = static_cast<uint64_t>(int64_t{static_cast<int8_t>(sign_byte)});
-        const auto sext = sext_byte << sign_byte_offset;
-
-        const auto sign_mask = ~uint64_t{0} << sign_byte_offset;
-        const auto value = sign_word & ~sign_mask;  // Reset extended bytes.
-        sign_word = sext | value;                   // Combine the result word.
-
-        // Produce bits (all zeros or ones) for extended words. This is done by SAR of
-        // the sign-extended byte. Shift by any value 7-63 would work.
-        const auto sign_ex = static_cast<uint64_t>(static_cast<int64_t>(sext_byte) >> 8);
-
-        for (size_t i = 3; i > sign_word_index; --i)
-            x[i] = sign_ex;  // Clear extended words.
+        auto sign_bit = static_cast<int>(ext) * 8 + 7;
+        auto sign_mask = uint256{1} << sign_bit;
+        auto value_mask = sign_mask - 1;
+        auto is_neg = (x & sign_mask) != 0;
+        x = is_neg ? x | ~value_mask : x & value_mask;
     }
 }
 
@@ -283,6 +270,7 @@ inline void sgt(StackTop stack) noexcept
 inline void eq(StackTop stack) noexcept
 {
     stack[1] = stack[0] == stack[1];
+    stack.pop();
 }
 
 inline void iszero(StackTop stack) noexcept
@@ -315,14 +303,14 @@ inline void byte(StackTop stack) noexcept
     const auto& n = stack.pop();
     auto& x = stack.top();
 
-    const bool n_valid = n < 32;
-    const uint64_t byte_mask = (n_valid ? 0xff : 0);
-
-    const auto index = 31 - static_cast<unsigned>(n[0] % 32);
-    const auto word = x[index / 8];
-    const auto byte_index = index % 8;
-    const auto byte = (word >> (byte_index * 8)) & byte_mask;
-    x = byte;
+    if (n > 31)
+        x = 0;
+    else
+    {
+        auto sh = (31 - static_cast<unsigned>(n)) * 8;
+        auto y = x >> sh;
+        x = y & 0xff;
+    }
 }
 
 inline void shl(StackTop stack) noexcept
@@ -337,14 +325,20 @@ inline void shr(StackTop stack) noexcept
 
 inline void sar(StackTop stack) noexcept
 {
-    const auto& y = stack.pop();
-    auto& x = stack.top();
+    if ((stack[1] & (uint256{1} << 255)) == 0)
+        return shr(stack);
 
-    const bool is_neg = static_cast<int64_t>(x[3]) < 0;  // Inspect the top bit (words are LE).
-    const auto sign_mask = is_neg ? ~uint256{} : uint256{};
+    constexpr auto allones = ~uint256{};
 
-    const auto mask_shift = (y < 256) ? (256 - y[0]) : 0;
-    x = (x >> y) | (sign_mask << mask_shift);
+    if (stack[0] >= 256)
+        stack[1] = allones;
+    else
+    {
+        const auto shift = static_cast<unsigned>(stack[0]);
+        stack[1] = (stack[1] >> shift) | (allones << (256 - shift));
+    }
+
+    stack.pop();
 }
 
 inline Result keccak256(StackTop stack, int64_t gas_left, ExecutionState& state) noexcept

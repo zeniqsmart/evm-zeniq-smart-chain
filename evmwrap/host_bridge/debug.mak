@@ -10,7 +10,6 @@ libevmwrap.so: host_context.o tx_ctrl.o
 	   ../evmone/instructions_calls.o \
 	   ../evmone/advanced_instructions.o \
 	   ../evmone/tracing.o \
-	   ../evmone/cpu_check.o \
 	   ../evmone/eof.o \
 	   ../evmone/vm.o \
 	   ../evmc/instructions/instruction_metrics.o  \

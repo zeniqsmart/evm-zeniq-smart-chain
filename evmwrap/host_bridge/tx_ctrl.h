@@ -389,12 +389,12 @@ public:
 	}
 	// Evmone calls this function to execute another smart contract
 	evmc_result execute(const struct evmc_host_interface* host,
-                        struct evmc_host_context* context,
-                        enum evmc_revision rev,
-                        const struct evmc_message* msg,
-                        const struct evmc_address* code_addr,
-                        uint8_t const* code,
-                        size_t code_size) {
+	                    struct evmc_host_context* context,
+	                    enum evmc_revision rev,
+	                    const struct evmc_message* msg,
+			    const struct evmc_address* code_addr,
+	                    uint8_t const* code,
+	                    size_t code_size) {
 		evmc_execute_fn executor = nullptr;
 		if(query_executor_fn && code_addr) { // Check AOT
 			executor = query_executor_fn(code_addr);
@@ -402,7 +402,7 @@ public:
 		if(!executor) { // fall back to the interpreter
 			executor = vm->execute;
 		}
-		// std::cout<<"segxc query "<<to_hex(msg->recipient)<<" "<<size_t(executor)<<std::endl;
+		//std::cout<<"query "<<to_hex(msg->recipient)<<" "<<size_t(executor)<<std::endl;
 		return executor(vm, host, context, rev, msg, code, code_size);
 	}
 	// a snapshot is just a position of the journal entry list

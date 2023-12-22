@@ -7,7 +7,6 @@ OBJS = \
    instructions_calls.o \
    advanced_instructions.o \
    tracing.o \
-   cpu_check.o \
    eof.o \
    vm.o \
 

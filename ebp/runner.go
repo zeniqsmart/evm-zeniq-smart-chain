@@ -415,7 +415,7 @@ func convertTxCalls(data_ptr C.size_t, msg *internal_tx_call) (txCall types.Inte
 	txCall.Flags = uint32(msg.flags)
 	txCall.Depth = int32(msg.depth)
 	txCall.Gas = int64(msg.gas)
-	txCall.Recipient = toAddress(&msg.recipient)
+	txCall.Destination = toAddress(&msg.recipient)
 	txCall.Sender = toAddress(&msg.sender)
 	txCall.Input = C.GoBytes(unsafe.Pointer(uintptr(data_ptr+msg.input_offset)), C.int(msg.input_size))
 	txCall.Value = toHash(&msg.value)
