@@ -874,6 +874,7 @@ struct evmc_host_interface
 
 /* Forward declaration. */
 struct evmc_vm;
+typedef struct evmc_vm evmc_vm;
 
 /**
  * Destroys the VM instance.

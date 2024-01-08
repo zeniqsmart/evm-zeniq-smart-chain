@@ -1,4 +1,5 @@
-#include <evmone/evmone.h>
+#include <evmone_v1.h>
+#include <evmone_v2.h>
 #include <array>
 #include <iostream>
 #include "host_context.h"
@@ -706,7 +707,14 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.input_size = input_size,
 		.value = *value
 	};
-	evmc_vm* vm = evmc_create_evmone();
+
+	evmc_vm* vm = nullptr;
+	if (revision <= EVMC_ISTANBUL) {
+		vm = evmc_create_evmone_v1();
+	} else {
+		vm = evmc_create_evmone_v2();
+	}
+	
 	tx_control txctrl(&r, tx_context, vm, query_executor_fn,
 			call_precompiled_contract_fn, need_gas_estimation, block->cfg);
 	small_buffer smallbuf;
