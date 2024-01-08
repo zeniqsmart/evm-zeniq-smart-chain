@@ -10,19 +10,6 @@
 #include <evmc/instructions.h>
 #include <memory>
 
-#include <fstream>
-#include <iomanip>
-#include <thread>
-#define ZH 3296565
-#define ZLOG std::ofstream z("/home/roland/tmp/z.out", std::ios_base::app); \
-    z << "\n@" << std::hex << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "\n"
-#define ZOP(h,x) if (h == ZH) \
-z << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(x) << "@" << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "\n"
-#define ZOUT(h,x) if (h == ZH) \
-z << "+" << x << "\n"
-#define ZOPGAS(h,x,gas) if (h == ZH) \
-z << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(x) << "@" << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "+" << gas << "\n"
-
 namespace evmone_v1::baseline
 {
 CodeAnalysis analyze(const uint8_t* code, size_t code_size)
@@ -108,8 +95,6 @@ inline evmc_status_code check_requirements(
 template <bool TracingEnabled>
 evmc_result execute(const VM& vm, ExecutionState& state, const CodeAnalysis& analysis) noexcept
 {
-    ZLOG;
-
     // Use padded code.
     state.code = {analysis.padded_code.get(), state.code.size()};
 
@@ -132,8 +117,6 @@ evmc_result execute(const VM& vm, ExecutionState& state, const CodeAnalysis& ana
 
         const auto op = *pc;
         const auto status = check_requirements(instruction_table, state, op);
-
-        ZOPGAS(state.host.get_tx_context().block_number,op,state.gas_left);
 
         if (status != EVMC_SUCCESS)
         {

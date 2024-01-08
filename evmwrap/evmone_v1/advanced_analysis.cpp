@@ -54,7 +54,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, const uint8_t* code, size_t code
     analysis.push_values.reserve(max_args_storage_size);
 
     // Create first block.
-    analysis.instrs.emplace_back(OPX_BEGINBLOCK, opx_beginblock_fn);
+    analysis.instrs.emplace_back(opx_beginblock_fn);
     auto block = block_analysis{0};
 
     const auto code_end = code + code_size;
@@ -80,7 +80,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, const uint8_t* code, size_t code
                 static_cast<int32_t>(analysis.instrs.size() - 1));
         }
         else
-            analysis.instrs.emplace_back(opcode,opcode_info.fn);
+            analysis.instrs.emplace_back(opcode_info.fn);
 
         auto& instr = analysis.instrs.back();
 
@@ -160,7 +160,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, const uint8_t* code, size_t code
             analysis.instrs[block.begin_block_index].arg.block = block.close();
 
             // Create new block.
-            analysis.instrs.emplace_back(OP_JUMPDEST,opx_beginblock_fn);
+            analysis.instrs.emplace_back(opx_beginblock_fn);
             block = block_analysis{analysis.instrs.size() - 1};
         }
     }
@@ -170,7 +170,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, const uint8_t* code, size_t code
 
     // Make sure the last block is terminated.
     // TODO: This is not needed if the last instruction is a terminating one.
-    analysis.instrs.emplace_back(OP_STOP,op_tbl[OP_STOP].fn);
+    analysis.instrs.emplace_back(op_tbl[OP_STOP].fn);
 
     // FIXME: assert(analysis.instrs.size() <= max_instrs_size);
 

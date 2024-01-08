@@ -159,9 +159,8 @@ struct Instruction
 {
     instruction_exec_fn fn = nullptr;
     InstructionArgument arg;
-    uint8_t opcode;
 
-    explicit constexpr Instruction(uint8_t op, instruction_exec_fn f) noexcept : fn{f}, arg{}, opcode(op) {}
+    explicit constexpr Instruction(instruction_exec_fn f) noexcept : fn{f}, arg{} {}
 };
 
 struct AdvancedCodeAnalysis

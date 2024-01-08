@@ -7,35 +7,14 @@
 #include "eof.hpp"
 #include <memory>
 
-#include <fstream>
-#include <iomanip>
-#include <thread>
-#define ZH 3296565
-#define ZLOG std::ofstream z("/home/roland/tmp/zz.out", std::ios_base::app); \
-z << "\n@" << std::hex << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "\n"
-#define ZOP(h,x) if (h == ZH) \
-z << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(x) << "@" << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "\n"
-#define ZOUT(h,x) if (h == ZH) \
-z << "+" << x << "\n"
-#define ZOPGAS(h,x,gas,ss) if (h == ZH) \
-z << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(x) << "@" << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "+" << gas << "=" << ss << "\n"
-#define ZSTACK(h,s) if (h == ZH) \
-z << hex(s) << "-"
-
-
 namespace evmone_v2::advanced
 {
 evmc_result execute(AdvancedExecutionState& state, const AdvancedCodeAnalysis& analysis) noexcept
 {
-    ZLOG;
-
     state.analysis.advanced = &analysis;  // Allow accessing the analysis by instructions.
 
     const auto* instr = state.analysis.advanced->instrs.data();  // Get the first instruction.
     while (instr != nullptr) {
-        ZOPGAS(state.get_tx_context().block_number,instr->opcode,state.gas_left, state.stack.size());
-        for (int i = 0; i < state.stack.size(); i++) ZSTACK(state.get_tx_context().block_number,state.stack[i]);
-        z << "\n";
         instr = instr->fn(instr, state);
     }
 

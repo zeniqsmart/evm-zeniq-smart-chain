@@ -22,19 +22,6 @@
 #define ASM_COMMENT(COMMENT)
 #endif
 
-#include <fstream>
-#include <iomanip>
-#include <thread>
-#define ZH
-#define ZLOG std::ofstream z("/home/roland/tmp/z.out", std::ios_base::app); \
-    z << "\n@" << std::hex << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "\n"
-#define ZOP(h,x) if (h == ZH) \
-z << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(x) << "@" << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "\n"
-#define ZOUT(h,x) if (h == ZH) \
-z << "+" << x << "\n"
-#define ZOPGAS(h,x,gas) if (h == ZH) \
-z << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(x) << "@" << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "+" << gas << "\n"
-
 namespace evmone_v2::baseline
 {
 namespace
@@ -292,8 +279,6 @@ int64_t dispatch_cgoto(
     const CostTable& cost_table, ExecutionState& state, int64_t gas, const uint8_t* code) noexcept
 {
 
-    ZLOG;
-
 #pragma GCC diagnostic ignored "-Wpedantic"
 
     static constexpr void* cgoto_table[] = {
@@ -316,7 +301,6 @@ int64_t dispatch_cgoto(
 
 #define ON_OPCODE(OPCODE)                                                                 \
     TARGET_##OPCODE : ASM_COMMENT(OPCODE);                                                \
-    ZOPGAS(state.host.get_tx_context().block_number,OPCODE,gas); \
     if (const auto next = invoke<OPCODE>(cost_table, stack_bottom, position, gas, state); \
         next.code_it == nullptr)                                                          \
     {                                                                                     \
