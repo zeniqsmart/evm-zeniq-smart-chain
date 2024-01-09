@@ -33,28 +33,37 @@ evmc_set_option_result set_option(evmc_vm* c_vm, char const* c_name, char const*
     const auto value = (c_value != nullptr) ? std::string_view{c_value} : std::string_view{};
     auto& vm = *static_cast<VM*>(c_vm);
 
-    if (name == "O")
+    if (name == "advanced")
     {
-        if (value == "0")
-        {
-            c_vm->execute = evmone_v2::baseline::execute;
+        c_vm->execute = evmone_v2::advanced::execute;
             return EVMC_SET_OPTION_SUCCESS;
         }
-        else if (value == "2")
+    else if (name == "cgoto")
         {
-            c_vm->execute = evmone_v2::advanced::execute;
+#if EVMONE_CGOTO_SUPPORTED
+        if (value == "no")
+        {
+            vm.cgoto = false;
             return EVMC_SET_OPTION_SUCCESS;
         }
         return EVMC_SET_OPTION_INVALID_VALUE;
+#else
+        return EVMC_SET_OPTION_INVALID_NAME;
+#endif
     }
     else if (name == "trace")
     {
-        vm.add_tracer(create_instruction_tracer(std::cerr));
+        vm.add_tracer(create_instruction_tracer(std::clog));
         return EVMC_SET_OPTION_SUCCESS;
     }
     else if (name == "histogram")
     {
-        vm.add_tracer(create_histogram_tracer(std::cerr));
+        vm.add_tracer(create_histogram_tracer(std::clog));
+        return EVMC_SET_OPTION_SUCCESS;
+    }
+    else if (name == "validate_eof")
+    {
+        vm.validate_eof = true;
         return EVMC_SET_OPTION_SUCCESS;
     }
     return EVMC_SET_OPTION_INVALID_NAME;
@@ -67,14 +76,12 @@ inline constexpr VM::VM() noexcept
   : evmc_vm{
         EVMC_ABI_VERSION,
         "evmone_v2",
-        "0.11.0",
+        PROJECT_VERSION,
         evmone_v2::destroy,
         evmone_v2::advanced::execute,
         evmone_v2::get_capabilities,
         evmone_v2::set_option,
-    },
-    m_first_tracer{}
-{}
+   } {}
 
 }  // namespace evmone_v2
 
