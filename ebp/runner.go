@@ -612,6 +612,11 @@ func runTxHelper(idx int, currBlock *types.BlockInfo, estimateGas bool) int64 {
 		return int64(gasUsed)
 	}
 
+	var rev uint32
+	rev = C.EVMC_ISTANBUL
+	if currBlock.Revision > rev {
+		rev = currBlock.Revision
+	}
 	gasEstimated := C.zero_depth_call_wrap(gas_price,
 		C.int64_t(runner.Tx.Gas),
 		&to,
@@ -622,7 +627,7 @@ func runTxHelper(idx int, currBlock *types.BlockInfo, estimateGas bool) int64 {
 		&bi,
 		C.int(idx),
 		C.bool(estimateGas),
-		C.EVMC_ISTANBUL,
+		rev,
 		QueryExecutorFn,
 	)
 	return int64(gasEstimated)
