@@ -138,4 +138,6 @@ Result sstore(StackTop stack, int64_t gas_left, ExecutionState& state) noexcept
     state.gas_refund += gas_refund;
     return {EVMC_SUCCESS, gas_left};
 }
+
+
 }  // namespace evmone_v2::instr::core
