@@ -709,11 +709,13 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 	};
 
 	evmc_vm* vm = nullptr;
-	if (revision <= EVMC_ISTANBUL) {
-		vm = evmc_create_evmone_v1();
-	} else {
-		vm = evmc_create_evmone_v2();
-	}
+	vm = evmc_create_evmone_v2();
+	revision = EVMC_ISTANBUL;
+	//TODO if (revision <= EVMC_ISTANBUL) {
+	//TODO 	vm = evmc_create_evmone_v1();
+	//TODO } else {
+	//TODO 	vm = evmc_create_evmone_v2();
+	//TODO }
 	
 	tx_control txctrl(&r, tx_context, vm, query_executor_fn,
 			call_precompiled_contract_fn, need_gas_estimation, block->cfg);
