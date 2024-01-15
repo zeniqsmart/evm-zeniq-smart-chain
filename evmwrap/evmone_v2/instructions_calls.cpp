@@ -16,10 +16,10 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     const auto dst = intx::be::trunc<evmc::address>(stack.pop());
     const auto value = (Op == OP_STATICCALL || Op == OP_DELEGATECALL) ? 0 : stack.pop();
     const auto has_value = value != 0;
-    const auto input_offset = stack.pop();
-    const auto input_size = stack.pop();
-    const auto output_offset = stack.pop();
-    const auto output_size = stack.pop();
+    const auto input_offset_u256 = stack.pop();
+    const auto input_size_u256 = stack.pop();
+    const auto output_offset_u256 = stack.pop();
+    const auto output_size_u256 = stack.pop();
 
     stack.push(0);  // Assume failure.
     state.return_data.clear();
@@ -30,14 +30,21 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
             return RET(EVMC_OUT_OF_GAS);
     }
 
-    if (!check_memory(gas_left, state.memory, input_offset, input_size))
+    if (!check_memory(gas_left, state.memory, input_offset_u256, input_size_u256))
         return RET(EVMC_OUT_OF_GAS);
 
-    if (!check_memory(gas_left, state.memory, output_offset, output_size))
+    if (!check_memory(gas_left, state.memory, output_offset_u256, output_size_u256))
         return RET(EVMC_OUT_OF_GAS);
+
+    const auto input_offset = static_cast<size_t>(input_offset_u256);
+    const auto input_size = static_cast<size_t>(input_size_u256);
+    const auto output_offset = static_cast<size_t>(output_offset_u256);
+    const auto output_size = static_cast<size_t>(output_size_u256);
 
     auto msg = evmc_message{};
-    msg.kind = (Op == OP_DELEGATECALL) ? EVMC_DELEGATECALL : (Op == OP_CALLCODE) ? EVMC_CALLCODE : EVMC_CALL;
+    msg.kind = (Op == OP_DELEGATECALL) ? EVMC_DELEGATECALL :
+               (Op == OP_CALLCODE)     ? EVMC_CALLCODE :
+                                         EVMC_CALL;
     msg.flags = (Op == OP_STATICCALL) ? uint32_t{EVMC_STATIC} : state.msg->flags;
     msg.depth = state.msg->depth + 1;
     msg.recipient = (Op == OP_CALL || Op == OP_STATICCALL) ? dst : state.msg->recipient;
@@ -46,10 +53,11 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     msg.value =
         (Op == OP_DELEGATECALL) ? state.msg->value : intx::be::store<evmc::uint256be>(value);
 
-    if (size_t(input_size) > 0)
+    if (input_size > 0)
     {
-        msg.input_data = &state.memory[size_t(input_offset)];
-        msg.input_size = size_t(input_size);
+        // input_offset may be garbage if input_size == 0.
+        msg.input_data = &state.memory[input_offset];
+        msg.input_size = input_size;
     }
 
     auto cost = has_value ? 9000 : 0;
@@ -106,8 +114,8 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     state.return_data.assign(result.output_data, result.output_size);
     stack.top() = result.status_code == EVMC_SUCCESS;
 
-    if (const auto copy_size = std::min(size_t(output_size), result.output_size); copy_size > 0)
-        std::memmove(&state.memory[size_t(output_offset)], result.output_data, copy_size);
+    if (const auto copy_size = std::min(output_size, result.output_size); copy_size > 0)
+        std::memcpy(&state.memory[output_offset], result.output_data, copy_size);
 
     const auto gas_used = msg.gas - result.gas_left;
     gas_left -= gas_used;
@@ -170,8 +178,9 @@ Result create_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noex
     msg.kind = (Op == OP_CREATE) ? EVMC_CREATE : EVMC_CREATE2;
     if (init_code_size > 0)
     {
-        msg.input_data = &state.memory[size_t(init_code_offset)];
-        msg.input_size = size_t(init_code_size);
+        // init_code_offset may be garbage if init_code_size == 0.
+        msg.input_data = &state.memory[init_code_offset];
+        msg.input_size = init_code_size;
     }
     msg.sender = state.msg->recipient;
     msg.depth = state.msg->depth + 1;
