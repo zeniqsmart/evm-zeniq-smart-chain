@@ -102,19 +102,19 @@ evmc_status_code sload(ExecutionState& state) noexcept
         constexpr auto additional_cold_sload_cost =
             instr::cold_sload_cost - instr::warm_storage_read_cost;
         if ((state.gas_left -= additional_cold_sload_cost) < 0)
-            return EVMC_OUT_OF_GAS;
+            RET(EVMC_OUT_OF_GAS);
     }
 
     x = intx::be::load<uint256>(state.host.get_storage(state.msg->recipient, key));
 
-    return EVMC_SUCCESS;
+    RET(EVMC_SUCCESS);
 }
 
 evmc_status_code sstore(ExecutionState& state) noexcept
 {
 
     if (state.rev >= EVMC_ISTANBUL && state.gas_left <= 2300)
-        return EVMC_OUT_OF_GAS;
+        RET(EVMC_OUT_OF_GAS);
 
     const auto key = intx::be::store<evmc::bytes32>(state.stack.pop());
     const auto value = intx::be::store<evmc::bytes32>(state.stack.pop());
@@ -129,8 +129,8 @@ evmc_status_code sstore(ExecutionState& state) noexcept
     const auto [gas_cost_warm, gas_refund] = sstore_costs[state.rev][status];
     const auto gas_cost = gas_cost_warm + gas_cost_cold;
     if ((state.gas_left -= gas_cost) < 0)
-        return EVMC_OUT_OF_GAS;
-    return EVMC_SUCCESS;
+        RET(EVMC_OUT_OF_GAS);
+    RET(EVMC_SUCCESS);
 }
 
 }  // namespace evmone_v1

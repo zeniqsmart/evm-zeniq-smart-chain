@@ -29,8 +29,33 @@ evmc_result execute(AdvancedExecutionState& state, const AdvancedCodeAnalysis& a
 evmc_result execute(evmc_vm* /*unused*/, const evmc_host_interface* host, evmc_host_context* ctx,
     evmc_revision rev, const evmc_message* msg, const uint8_t* code, size_t code_size) noexcept
 {
+
     auto state = std::make_unique<AdvancedExecutionState>(*msg, rev, *host, ctx, code, code_size);
     auto analysis = analyze(rev, code, code_size);
+
+
+/*  //new_in_evmone_v2
+    AdvancedCodeAnalysis analysis;
+    const bytes_view container = {code, code_size};
+    if (is_eof_container(container))
+    {
+        if (rev >= EVMC_PRAGUE)
+        {
+            const auto eof1_header = read_valid_eof1_header(container);
+            analysis = analyze(rev, eof1_header.get_code(container, 0));
+        }
+        else
+            // Skip analysis, because it will recognize 01 section id as OP_ADD and return
+            // EVMC_STACKUNDERFLOW.
+            return evmc::make_result(EVMC_UNDEFINED_INSTRUCTION, 0, 0, nullptr, 0);
+    }
+    else
+        analysis = analyze(rev, container);
+    auto state =
+        std::make_unique<AdvancedExecutionState>(*msg, rev, *host, ctx, container, bytes_view{});
+*/ //new_in_evmone_v2 end
+
     return execute(*state, analysis);
+
 }
 }  // namespace evmone_v1
