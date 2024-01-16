@@ -7,9 +7,8 @@
 namespace evmone_v1
 {
 template <evmc_call_kind Kind, bool Static>
-Result call(ExecutionState& state) noexcept
+evmc_status_code call(ExecutionState& state) noexcept
 {
-
     const auto gas = state.stack.pop();
     const auto dst = intx::be::trunc<evmc::address>(state.stack.pop());
     const auto value = (Static || Kind == EVMC_DELEGATECALL) ? 0 : state.stack.pop();
@@ -20,19 +19,18 @@ Result call(ExecutionState& state) noexcept
     const auto output_size = state.stack.pop();
 
     state.stack.push(0);  // Assume failure.
-    state.return_data.clear();
 
     if (state.rev >= EVMC_BERLIN && state.host.access_account(dst) == EVMC_ACCESS_COLD)
     {
         if ((state.gas_left -= instr::additional_cold_account_access_cost) < 0)
-            return RET(EVMC_OUT_OF_GAS);
+            return EVMC_OUT_OF_GAS;
     }
 
     if (!check_memory(state, input_offset, input_size))
-        return RET(EVMC_OUT_OF_GAS);
+        return EVMC_OUT_OF_GAS;
 
     if (!check_memory(state, output_offset, output_size))
-        return RET(EVMC_OUT_OF_GAS);
+        return EVMC_OUT_OF_GAS;
 
     auto msg = evmc_message{};
     msg.kind = Kind;
@@ -54,14 +52,14 @@ Result call(ExecutionState& state) noexcept
     if constexpr (Kind == EVMC_CALL)
     {
         if (has_value && state.msg->flags & EVMC_STATIC)
-            return RET(EVMC_STATIC_MODE_VIOLATION);
+            return EVMC_STATIC_MODE_VIOLATION;
 
         if ((has_value || state.rev < EVMC_SPURIOUS_DRAGON) && !state.host.account_exists(dst))
             cost += 25000;
     }
 
     if ((state.gas_left -= cost) < 0)
-        return RET(EVMC_OUT_OF_GAS);
+        return EVMC_OUT_OF_GAS;
 
     msg.gas = std::numeric_limits<int64_t>::max();
     if (gas < msg.gas)
@@ -70,7 +68,7 @@ Result call(ExecutionState& state) noexcept
     if (state.rev >= EVMC_TANGERINE_WHISTLE)  // TODO: Always true for STATICCALL.
         msg.gas = std::min(msg.gas, state.gas_left - state.gas_left / 64);
     else if (msg.gas > state.gas_left)
-        return RET(EVMC_OUT_OF_GAS);
+        return EVMC_OUT_OF_GAS;
 
     if (has_value)
     {
@@ -78,12 +76,14 @@ Result call(ExecutionState& state) noexcept
         state.gas_left += 2300;
     }
 
+    state.return_data.clear();
+
     if (state.msg->depth >= 1024)
-        return RET(EVMC_SUCCESS);
+        return EVMC_SUCCESS;
 
     if (has_value &&
         intx::be::load<uint256>(state.host.get_balance(state.msg->recipient)) < value)
-        return RET(EVMC_SUCCESS);
+        return EVMC_SUCCESS;
 
     const auto result = state.host.call(msg);
     state.return_data.assign(result.output_data, result.output_size);
@@ -94,31 +94,27 @@ Result call(ExecutionState& state) noexcept
 
     const auto gas_used = msg.gas - result.gas_left;
     state.gas_left -= gas_used;
-    return RET(EVMC_SUCCESS);
+    return EVMC_SUCCESS;
 }
 
-template Result call<EVMC_CALL>(
-        ExecutionState& state) noexcept;
-template Result call<EVMC_CALL, true>(
-        ExecutionState& state) noexcept;
-template Result call<EVMC_DELEGATECALL>(
-        ExecutionState& state) noexcept;
-template Result call<EVMC_CALLCODE>(
-        ExecutionState& state) noexcept;
+template evmc_status_code call<EVMC_CALL>(ExecutionState& state) noexcept;
+template evmc_status_code call<EVMC_CALL, true>(ExecutionState& state) noexcept;
+template evmc_status_code call<EVMC_DELEGATECALL>(ExecutionState& state) noexcept;
+template evmc_status_code call<EVMC_CALLCODE>(ExecutionState& state) noexcept;
 
 
 template <evmc_call_kind Kind>
-Result create(ExecutionState& state) noexcept
+evmc_status_code create(ExecutionState& state) noexcept
 {
     if (state.msg->flags & EVMC_STATIC)
-        return RET(EVMC_STATIC_MODE_VIOLATION);
+        return EVMC_STATIC_MODE_VIOLATION;
 
     const auto endowment = state.stack.pop();
     const auto init_code_offset = state.stack.pop();
     const auto init_code_size = state.stack.pop();
 
     if (!check_memory(state, init_code_offset, init_code_size))
-        return RET(EVMC_OUT_OF_GAS);
+        return EVMC_OUT_OF_GAS;
 
     auto salt = uint256{};
     if constexpr (Kind == EVMC_CREATE2)
@@ -126,18 +122,18 @@ Result create(ExecutionState& state) noexcept
         salt = state.stack.pop();
         auto salt_cost = num_words(static_cast<size_t>(init_code_size)) * 6;
         if ((state.gas_left -= salt_cost) < 0)
-            return RET(EVMC_OUT_OF_GAS);
+            return EVMC_OUT_OF_GAS;
     }
 
     state.stack.push(0);
     state.return_data.clear();
 
     if (state.msg->depth >= 1024)
-        return RET(EVMC_SUCCESS);
+        return EVMC_SUCCESS;
 
     if (endowment != 0 &&
         intx::be::load<uint256>(state.host.get_balance(state.msg->recipient)) < endowment)
-        return RET(EVMC_SUCCESS);
+        return EVMC_SUCCESS;
 
     auto msg = evmc_message{};
     msg.gas = state.gas_left;
@@ -162,9 +158,9 @@ Result create(ExecutionState& state) noexcept
     if (result.status_code == EVMC_SUCCESS)
         state.stack.top() = intx::be::load<uint256>(result.create_address);
 
-    return RET(EVMC_SUCCESS);
+    return EVMC_SUCCESS;
 }
 
-template Result create<EVMC_CREATE>(ExecutionState& state) noexcept;
-template Result create<EVMC_CREATE2>(ExecutionState& state) noexcept;
+template evmc_status_code create<EVMC_CREATE>(ExecutionState& state) noexcept;
+template evmc_status_code create<EVMC_CREATE2>(ExecutionState& state) noexcept;
 }  // namespace evmone_v1
