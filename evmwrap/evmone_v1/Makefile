@@ -9,6 +9,7 @@ OBJS = \
    tracing.o \
    eof.o \
    vm.o \
+   cpu_check.o
 
 all : ${OBJS}
 
