@@ -358,7 +358,13 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 		if(is_precompiled_id(id, txctrl->get_cfg())) {
 			result = ctx.run_precompiled_contract(call_msg.recipient, id);
 		} else {
-			ctx.load_code(call_msg.recipient);
+			if (call_msg.kind == EVMC_DELEGATECALL &&
+			        (call_msg.flags & 0x80000000) // use_code_address from ../evmone_v2/instructions_calls.cpp
+			   ){
+			        ctx.load_code(call_msg.code_address);
+			} else {
+			        ctx.load_code(call_msg.recipient);
+			}
 			if(call_msg.kind == EVMC_CALL) {
 				ctx.check_eip158();
 			}

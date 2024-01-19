@@ -49,6 +49,7 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     msg.depth = state.msg->depth + 1;
     msg.recipient = (Op == OP_CALL || Op == OP_STATICCALL) ? dst : state.msg->recipient;
     msg.code_address = dst;
+    msg.flags |= 0x80000000; // use_code_address to host's call implementation
     msg.sender = (Op == OP_DELEGATECALL) ? state.msg->sender : state.msg->recipient;
     msg.value =
         (Op == OP_DELEGATECALL) ? state.msg->value : intx::be::store<evmc::uint256be>(value);
