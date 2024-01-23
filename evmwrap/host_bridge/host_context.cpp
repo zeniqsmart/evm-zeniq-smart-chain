@@ -1,5 +1,4 @@
-#include <evmone_v1.h>
-#include <evmone_v2.h>
+#include <evmone.h>
 #include <array>
 #include <iostream>
 #include "host_context.h"
@@ -356,7 +355,7 @@ evmc_result evmc_host_context::call(const evmc_message& call_msg) {
 	if(normal_run) {
 		evmc_address codeaddr;
 		if (call_msg.kind == EVMC_DELEGATECALL &&
-			(call_msg.flags & 0x80000000) // use_code_address from ../evmone_v2/instructions_calls.cpp
+			(call_msg.flags & 0x80000000) // use_code_address from ../evmone/instructions_calls.cpp
 		   ){
 			codeaddr = call_msg.code_address;
 		} else {
@@ -716,14 +715,7 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.value = *value
 	};
 
-	evmc_vm* vm = nullptr;
-	vm = evmc_create_evmone_v2();
-	revision = EVMC_ISTANBUL;
-	//TODO if (revision <= EVMC_ISTANBUL) {
-	//TODO 	vm = evmc_create_evmone_v1();
-	//TODO } else {
-	//TODO 	vm = evmc_create_evmone_v2();
-	//TODO }
+	evmc_vm* vm = evmc_create_evmone();
 	
 	tx_control txctrl(&r, tx_context, vm, query_executor_fn,
 			call_precompiled_contract_fn, need_gas_estimation, block->cfg);
