@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/zeniqsmart/moeingevm/utils"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/utils"
 )
 
 //	uint64_t get_creation_counter(uint8_t n) {

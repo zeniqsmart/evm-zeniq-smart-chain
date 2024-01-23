@@ -10,8 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
 
-	"github.com/zeniqsmart/moeingevm/types"
-	"github.com/zeniqsmart/moeingevm/utils"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/utils"
 )
 
 //#include "../evmwrap/host_bridge/bridge.h"

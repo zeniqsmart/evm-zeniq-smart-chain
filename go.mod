@@ -1,4 +1,4 @@
-module github.com/zeniqsmart/moeingevm
+module github.com/zeniqsmart/evm-zeniq-smart-chain
 
 go 1.18
 
@@ -23,8 +23,8 @@ require (
 )
 
 require (
-	github.com/zeniqsmart/moeingads v0.5.0
-	github.com/zeniqsmart/moeingdb v0.5.0
+	github.com/zeniqsmart/ads-zeniq-smart-chain v0.5.0
+	github.com/zeniqsmart/db-zeniq-smart-chain v0.5.0
 )
 
 require github.com/btcsuite/btcd/btcec/v2 v2.1.2 // indirect
@@ -62,8 +62,6 @@ require (
 
 replace github.com/vechain/go-ecvrf => github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
 
-replace github.com/zeniqsmart/moeingads => ../moeingads
+replace github.com/zeniqsmart/ads-zeniq-smart-chain => ../ads-zeniq-smart-chain
 
-replace github.com/zeniqsmart/moeingdb => ../moeingdb
-
-// replace github.com/tendermint/tendermint => ../tendermint
+replace github.com/zeniqsmart/db-zeniq-smart-chain => ../db-zeniq-smart-chain

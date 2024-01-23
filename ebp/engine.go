@@ -11,13 +11,13 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/seehuhn/mt19937"
 	"github.com/tendermint/tendermint/libs/log"
-	dt "github.com/zeniqsmart/moeingads/datatree"
-	"github.com/zeniqsmart/moeingads/store/rabbit"
-	storetypes "github.com/zeniqsmart/moeingads/store/types"
-	modbtypes "github.com/zeniqsmart/moeingdb/types"
+	dt "github.com/zeniqsmart/ads-zeniq-smart-chain/datatree"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
+	storetypes "github.com/zeniqsmart/ads-zeniq-smart-chain/store/types"
+	dbtypes "github.com/zeniqsmart/db-zeniq-smart-chain/types"
 
-	"github.com/zeniqsmart/moeingevm/types"
-	"github.com/zeniqsmart/moeingevm/utils"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/utils"
 )
 
 const (
@@ -709,10 +709,10 @@ func (exec *txEngine) CommittedTxIds() [][32]byte {
 	return idList
 }
 
-func (exec *txEngine) CommittedTxsForMoDB() []modbtypes.Tx {
-	txList := make([]modbtypes.Tx, len(exec.committedTxs))
+func (exec *txEngine) CommittedTxsForDB() []dbtypes.Tx {
+	txList := make([]dbtypes.Tx, len(exec.committedTxs))
 	for i, tx := range exec.committedTxs {
-		t := modbtypes.Tx{}
+		t := dbtypes.Tx{}
 		copy(t.HashId[:], tx.Hash[:])
 		copy(t.SrcAddr[:], tx.From[:])
 		copy(t.DstAddr[:], tx.To[:])
@@ -721,7 +721,7 @@ func (exec *txEngine) CommittedTxsForMoDB() []modbtypes.Tx {
 			panic(err)
 		}
 		t.Content = txContent
-		t.LogList = make([]modbtypes.Log, len(tx.Logs))
+		t.LogList = make([]dbtypes.Log, len(tx.Logs))
 		for j, l := range tx.Logs {
 			copy(t.LogList[j].Address[:], l.Address[:])
 			if len(l.Topics) != 0 {

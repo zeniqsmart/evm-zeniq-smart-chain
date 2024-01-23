@@ -10,15 +10,15 @@ import (
 	"strings"
 
 	"github.com/holiman/uint256"
-	"github.com/zeniqsmart/moeingads"
-	"github.com/zeniqsmart/moeingads/store"
-	"github.com/zeniqsmart/moeingads/store/rabbit"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/ads"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/zeniqsmart/moeingevm/ebp"
-	tc "github.com/zeniqsmart/moeingevm/evmwrap/testcase"
-	"github.com/zeniqsmart/moeingevm/types"
-	"github.com/zeniqsmart/moeingevm/utils"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/ebp"
+	tc "github.com/zeniqsmart/evm-zeniq-smart-chain/evmwrap/testcase"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/utils"
 )
 
 func WriteWorldStateToRabbit(rbt rabbit.RabbitStore, world *tc.WorldState) {
@@ -79,9 +79,9 @@ func runTestCase(filename string, theCase *tc.TestCase, printLog bool) {
 	blockReward := uint256.NewInt(0)
 	tc.AddBlockReward(world, currBlock.Coinbase, blockReward)
 
-	// write tc.WorldState to MoeingADS
+	// write tc.WorldState to ADS
 	os.RemoveAll("./rocksdb.db")
-	mads := moeingads.NewMoeingADS4Mock([][]byte{GuardStart, GuardEnd})
+	mads := ads.NewADS4Mock([][]byte{GuardStart, GuardEnd})
 	root := store.NewRootStore(mads, nil)
 	defer root.Close()
 	height := int64(1)
@@ -114,7 +114,7 @@ func runTestCase(filename string, theCase *tc.TestCase, printLog bool) {
 	gasFee.Mul(uint256.NewInt(txList[0].GasUsed),
 		utils.U256FromSlice32(txList[0].GasPrice[:]))
 
-	// create new tc.WorldState according to MoeingADS's content
+	// create new tc.WorldState according to ADS's content
 	world = tc.GetWorldStateFromMads(mads)
 
 	blockReward.SetUint64(2000000000000000000)

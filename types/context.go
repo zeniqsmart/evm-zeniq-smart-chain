@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/zeniqsmart/moeingads/store/rabbit"
-	modbtypes "github.com/zeniqsmart/moeingdb/types"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
+	dbtypes "github.com/zeniqsmart/db-zeniq-smart-chain/types"
 )
 
 var (
@@ -22,14 +22,14 @@ var (
 
 type Context struct {
 	Rbt              *rabbit.RabbitStore
-	Db               modbtypes.DB
+	Db               dbtypes.DB
 	Height           int64
 	XHedgeForkBlock  int64
 	ShaGateForkBlock int64
 	CCRPCForkBlock   int64
 }
 
-func NewContext(rbt *rabbit.RabbitStore, db modbtypes.DB, CCRPCForkBlock int64) *Context {
+func NewContext(rbt *rabbit.RabbitStore, db dbtypes.DB, CCRPCForkBlock int64) *Context {
 	return &Context{
 		Rbt:              rbt,
 		Db:               db,
@@ -50,7 +50,7 @@ func (c *Context) WithRbt(rabbitStore *rabbit.RabbitStore) *Context {
 	}
 }
 
-func (c *Context) WithDb(db modbtypes.DB) *Context {
+func (c *Context) WithDb(db dbtypes.DB) *Context {
 	return &Context{
 		Rbt:              c.Rbt,
 		Db:               db,
@@ -230,7 +230,7 @@ func (c *Context) SetCurrBlockBasicInfo(blk *Block) {
 	c.Rbt.Set([]byte{CURR_BLOCK_KEY}, blk.SerializeBasicInfo())
 }
 
-func (c *Context) StoreBlock(blk *modbtypes.Block, txid2sigMap map[[32]byte][65]byte) {
+func (c *Context) StoreBlock(blk *dbtypes.Block, txid2sigMap map[[32]byte][65]byte) {
 	c.Db.AddBlock(blk, -1, txid2sigMap)
 }
 
@@ -512,20 +512,20 @@ func (c *Context) GetTxListByHeightWithRange(height uint32, start, end int) (txs
 
 // return the times addr acts as the to-address of a transaction
 func (c *Context) GetToAddressCount(addr common.Address) int64 {
-	k := append([]byte{modbtypes.TO_ADDR_KEY}, addr[:]...)
+	k := append([]byte{dbtypes.TO_ADDR_KEY}, addr[:]...)
 	return c.Db.QueryNotificationCounter(k)
 }
 
 // return the times addr acts as the from-address of a transaction
 func (c *Context) GetFromAddressCount(addr common.Address) int64 {
-	k := append([]byte{modbtypes.FROM_ADDR_KEY}, addr[:]...)
+	k := append([]byte{dbtypes.FROM_ADDR_KEY}, addr[:]...)
 	return c.Db.QueryNotificationCounter(k)
 }
 
 // return the times addr acts as the to-address of a SEP20 Transfer event at some contract
 func (c *Context) GetSep20ToAddressCount(contract common.Address, addr common.Address) int64 {
 	var zero12 [12]byte
-	k := append([]byte{modbtypes.TRANS_TO_ADDR_KEY}, contract[:]...)
+	k := append([]byte{dbtypes.TRANS_TO_ADDR_KEY}, contract[:]...)
 	k = append(k, zero12[:]...)
 	k = append(k, addr[:]...)
 	return c.Db.QueryNotificationCounter(k)
@@ -534,7 +534,7 @@ func (c *Context) GetSep20ToAddressCount(contract common.Address, addr common.Ad
 // return the times addr acts as a from-address of a SEP20 Transfer event at some contract
 func (c *Context) GetSep20FromAddressCount(contract common.Address, addr common.Address) int64 {
 	var zero12 [12]byte
-	k := append([]byte{modbtypes.TRANS_FROM_ADDR_KEY}, contract[:]...)
+	k := append([]byte{dbtypes.TRANS_FROM_ADDR_KEY}, contract[:]...)
 	k = append(k, zero12[:]...)
 	k = append(k, addr[:]...)
 	return c.Db.QueryNotificationCounter(k)

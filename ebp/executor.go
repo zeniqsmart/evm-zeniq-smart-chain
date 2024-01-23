@@ -4,9 +4,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/holiman/uint256"
-	modbtypes "github.com/zeniqsmart/moeingdb/types"
+	dbtypes "github.com/zeniqsmart/db-zeniq-smart-chain/types"
 
-	"github.com/zeniqsmart/moeingevm/types"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
 )
 
 type TxExecutor interface {
@@ -27,7 +27,7 @@ type TxExecutor interface {
 	CollectedTxsCount() int
 	CommittedTxs() []*types.Transaction
 	CommittedTxIds() [][32]byte
-	CommittedTxsForMoDB() []modbtypes.Tx
+	CommittedTxsForDB() []dbtypes.Tx
 	GasUsedInfo() (gasUsed uint64, feeRefund, gasFee uint256.Int)
 	StandbyQLen() int
 }

@@ -16,15 +16,15 @@ import (
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/zeniqsmart/moeingads"
-	"github.com/zeniqsmart/moeingads/store"
-	"github.com/zeniqsmart/moeingads/store/rabbit"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/ads"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/zeniqsmart/moeingevm/evmwrap/testcase"
-	"github.com/zeniqsmart/moeingevm/types"
-	//"github.com/zeniqsmart/moeingevm/utils"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/evmwrap/testcase"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
+	//"github.com/zeniqsmart/evm-zeniq-smart-chain/utils"
 )
 
 func prepareTruck() (*store.TrunkStore, *store.RootStore) {
@@ -32,7 +32,7 @@ func prepareTruck() (*store.TrunkStore, *store.RootStore) {
 		GuardStart = []byte{0, 0, 0, 0, 0, 0, 0, 0}
 		GuardEnd   = []byte{255, 255, 255, 255, 255, 255, 255, 255, 255}
 	)
-	mads, err := moeingads.NewMoeingADS("./testdbdata", false, [][]byte{GuardStart, GuardEnd})
+	mads, err := ads.NewADS("./testdbdata", false, [][]byte{GuardStart, GuardEnd})
 	if err != nil {
 		panic(err)
 	}

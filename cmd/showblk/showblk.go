@@ -7,8 +7,8 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/zeniqsmart/moeingdb/modb"
-	"github.com/zeniqsmart/moeingevm/types"
+	"github.com/zeniqsmart/db-zeniq-smart-chain/db"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
 )
 
 func GetBlockContentByHeight(c *types.Context, height uint64) (*types.Block, []*types.Transaction) {
@@ -24,7 +24,7 @@ func GetBlockContentByHeight(c *types.Context, height uint64) (*types.Block, []*
 }
 
 func main() {
-	ctx := &types.Context{Db: modb.NewMoDB(os.Args[1], log.NewNopLogger())}
+	ctx := &types.Context{Db: db.NewDB(os.Args[1], log.NewNopLogger())}
 	height, err := strconv.Atoi(os.Args[2])
 	if err != nil {
 		panic(err)

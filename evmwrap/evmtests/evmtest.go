@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
 
-	tc "github.com/zeniqsmart/moeingevm/evmwrap/testcase"
+	tc "github.com/zeniqsmart/evm-zeniq-smart-chain/evmwrap/testcase"
 )
 
 /*

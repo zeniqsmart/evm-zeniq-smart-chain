@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/zeniqsmart/moeingevm/ebp/ebptests"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/ebp/ebptests"
 )
 
 func main() {

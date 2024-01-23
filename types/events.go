@@ -5,7 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	modbtypes "github.com/zeniqsmart/moeingdb/types"
+	dbtypes "github.com/zeniqsmart/db-zeniq-smart-chain/types"
 )
 
 /*
@@ -17,13 +17,13 @@ import (
 */
 type ChainEvent struct {
 	BlockHeader *Header
-	Block       *modbtypes.Block
+	Block       *dbtypes.Block
 	Hash        gethcmn.Hash
 	Logs        []*gethtypes.Log
 	// TODO: define more fields
 }
 
-func BlockToChainEvent(mdbBlock *modbtypes.Block) ChainEvent {
+func BlockToChainEvent(mdbBlock *dbtypes.Block) ChainEvent {
 	return ChainEvent{
 		Hash:        mdbBlock.BlockHash,
 		BlockHeader: toBlockHeader(mdbBlock),
@@ -32,7 +32,7 @@ func BlockToChainEvent(mdbBlock *modbtypes.Block) ChainEvent {
 	}
 }
 
-func collectAllGethLogs(mdbBlock *modbtypes.Block) []*gethtypes.Log {
+func collectAllGethLogs(mdbBlock *dbtypes.Block) []*gethtypes.Log {
 	logs := make([]*gethtypes.Log, 0, 8)
 	for _, mdbTx := range mdbBlock.TxList {
 		tx := &Transaction{}
@@ -61,7 +61,7 @@ func collectAllGethLogs(mdbBlock *modbtypes.Block) []*gethtypes.Log {
 	return logs
 }
 
-func toBlockHeader(mdbBlock *modbtypes.Block) *Header {
+func toBlockHeader(mdbBlock *dbtypes.Block) *Header {
 	block := &Block{}
 	_, err := block.UnmarshalMsg(mdbBlock.BlockInfo)
 	if err != nil { // ignore error

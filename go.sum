@@ -664,10 +664,6 @@ github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6/go.mod h1:ce1O1j6Ut
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-github.com/zeniqsmart/moeingads v0.0.0-20230728113238-e4b9170984f7 h1:diA7IPluMdzIv/UPkCLbzpD4B4VKzBqGCNCvGFqDKF0=
-github.com/zeniqsmart/moeingads v0.0.0-20230728113238-e4b9170984f7/go.mod h1:AVZRouAjz0uCNq0ckjrul61/z465gheLU+uWo5SbBqE=
-github.com/zeniqsmart/moeingdb v0.5.0 h1:JAaN14NC7ZqZVeQYrm0XxMlwA8Y2+O53hHzRW2X4/e4=
-github.com/zeniqsmart/moeingdb v0.5.0/go.mod h1:HMtSydXufZLGQfmgbAlRSszQDkAdWeSznb92z8HdC20=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.5/go.mod h1:G5EMThwa9y8QZGBClrRx5EY+Yw9kAhnjy3bSjsnlVTQ=

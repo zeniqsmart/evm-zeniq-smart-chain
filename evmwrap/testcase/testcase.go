@@ -21,11 +21,11 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/zeniqsmart/moeingads"
-	"github.com/zeniqsmart/moeingads/store/rabbit"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/ads"
+	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
 
-	"github.com/zeniqsmart/moeingevm/types"
-	"github.com/zeniqsmart/moeingevm/utils"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
+	"github.com/zeniqsmart/evm-zeniq-smart-chain/utils"
 )
 
 /*
@@ -126,7 +126,7 @@ func NewWorldState() WorldState {
 	}
 }
 
-func GetWorldStateFromMads(mads *moeingads.MoeingADS) *WorldState {
+func GetWorldStateFromMads(mads *ads.ADS) *WorldState {
 	world := NewWorldState()
 	mads.ScanAll(func(key, value []byte) {
 		if bytes.Equal(key, types.StandbyTxQueueKey[:]) {
