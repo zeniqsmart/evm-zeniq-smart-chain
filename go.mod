@@ -23,8 +23,8 @@ require (
 )
 
 require (
-	github.com/zeniqsmart/ads-zeniq-smart-chain v0.5.0
-	github.com/zeniqsmart/db-zeniq-smart-chain v0.5.0
+	github.com/zeniqsmart/ads-zeniq-smart-chain v0.6.0
+	github.com/zeniqsmart/db-zeniq-smart-chain v0.6.0
 )
 
 require github.com/btcsuite/btcd/btcec/v2 v2.1.2 // indirect
