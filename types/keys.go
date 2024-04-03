@@ -84,6 +84,8 @@ type BlockInfo struct {
 	GasLimit   int64
 	Difficulty [32]byte
 	ChainId    [32]byte
+	BaseFeePerGas [32]byte
+	BaseFeeBlob [32]byte
 	Revision   uint32
 }
 

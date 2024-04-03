@@ -17,5 +17,5 @@ libevmwrap.so: host_context.o tx_ctrl.o
 	   ../sha256/sha256.o ../ripemd160/ripemd160.o ../ripemd160/memzero.o -lc -lstdc++
 
 %.o: %.cpp
-	g++ -Wall -O0 -g -fPIC -std=c++20 -c -I ../evmone/include/ -I ../evmc/include/ -I ../intx/include/ -I ../keccak/include -o $@ -c $<
+	g++ -Wall -O0 -g -fPIC -std=c++20 -c -I ../evmone/include/ -I ../evmc/include/ -I ../intx/include/ -I ../keccak/include -o $@ -c $(realpath $<)
 

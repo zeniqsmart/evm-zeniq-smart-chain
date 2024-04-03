@@ -68,9 +68,7 @@ struct EOF1Header
 enum class EOFValidationError
 {
     success,
-    starts_with_format,
     invalid_prefix,
-    eof_version_mismatch,
     eof_version_unknown,
 
     incomplete_section_size,
@@ -82,6 +80,7 @@ enum class EOFValidationError
     zero_section_size,
     section_headers_not_terminated,
     invalid_section_bodies_size,
+    unreachable_code_sections,
     undefined_instruction,
     truncated_instruction,
     invalid_rjump_destination,

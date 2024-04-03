@@ -253,10 +253,10 @@
     ON_OPCODE_UNDEFINED(0xce)                               \
     ON_OPCODE_UNDEFINED(0xcf)                               \
                                                             \
-    ON_OPCODE_UNDEFINED(0xd0)                               \
-    ON_OPCODE_UNDEFINED(0xd1)                               \
-    ON_OPCODE_UNDEFINED(0xd2)                               \
-    ON_OPCODE_UNDEFINED(0xd3)                               \
+    ON_OPCODE_IDENTIFIER(OP_DATALOAD, dataload)             \
+    ON_OPCODE_IDENTIFIER(OP_DATALOADN, dataloadn)           \
+    ON_OPCODE_IDENTIFIER(OP_DATASIZE, datasize)             \
+    ON_OPCODE_IDENTIFIER(OP_DATACOPY, datacopy)             \
     ON_OPCODE_UNDEFINED(0xd4)                               \
     ON_OPCODE_UNDEFINED(0xd5)                               \
     ON_OPCODE_UNDEFINED(0xd6)                               \
@@ -278,10 +278,10 @@
     ON_OPCODE_IDENTIFIER(OP_JUMPF, jumpf)                   \
     ON_OPCODE_IDENTIFIER(OP_DUPN, dupn)                     \
     ON_OPCODE_IDENTIFIER(OP_SWAPN, swapn)                   \
-    ON_OPCODE_IDENTIFIER(OP_DATALOAD, dataload)             \
-    ON_OPCODE_IDENTIFIER(OP_DATALOADN, dataloadn)           \
-    ON_OPCODE_IDENTIFIER(OP_DATASIZE, datasize)             \
-    ON_OPCODE_IDENTIFIER(OP_DATACOPY, datacopy)             \
+    ON_OPCODE_IDENTIFIER(OP_EXCHANGE, exchange)             \
+    ON_OPCODE_UNDEFINED(0xe9)                               \
+    ON_OPCODE_UNDEFINED(0xea)                               \
+    ON_OPCODE_UNDEFINED(0xeb)                               \
     ON_OPCODE_UNDEFINED(0xec)                               \
     ON_OPCODE_UNDEFINED(0xed)                               \
     ON_OPCODE_UNDEFINED(0xee)                               \
@@ -294,7 +294,7 @@
     ON_OPCODE_IDENTIFIER(OP_DELEGATECALL, delegatecall)     \
     ON_OPCODE_IDENTIFIER(OP_CREATE2, create2)               \
     ON_OPCODE_UNDEFINED(0xf6)                               \
-    ON_OPCODE_UNDEFINED(0xf7)                               \
+    ON_OPCODE_IDENTIFIER(OP_RETURNDATALOAD, returndataload) \
     ON_OPCODE_UNDEFINED(0xf8)                               \
     ON_OPCODE_UNDEFINED(0xf9)                               \
     ON_OPCODE_IDENTIFIER(OP_STATICCALL, staticcall)         \

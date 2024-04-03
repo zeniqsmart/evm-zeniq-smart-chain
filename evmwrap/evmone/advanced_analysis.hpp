@@ -1,5 +1,5 @@
 // evmone: Fast Ethereum Virtual Machine implementation
-// Copyright 2019-2020 The evmone Authors.
+// Copyright 2019 The evmone Authors.
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -149,7 +149,7 @@ struct OpTableEntry
 {
     instruction_exec_fn fn;
     int16_t gas_cost;
-    int8_t stack_req;
+    uint8_t stack_req;
     int8_t stack_change;
 };
 

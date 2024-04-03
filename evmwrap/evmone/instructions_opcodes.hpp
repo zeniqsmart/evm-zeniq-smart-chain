@@ -158,6 +158,11 @@ enum Opcode : uint8_t
     OP_LOG3 = 0xa3,
     OP_LOG4 = 0xa4,
 
+    OP_DATALOAD = 0xd0,
+    OP_DATALOADN = 0xd1,
+    OP_DATASIZE = 0xd2,
+    OP_DATACOPY = 0xd3,
+
     OP_RJUMP = 0xe0,
     OP_RJUMPI = 0xe1,
     OP_RJUMPV = 0xe2,
@@ -167,10 +172,7 @@ enum Opcode : uint8_t
 
     OP_DUPN = 0xe6,
     OP_SWAPN = 0xe7,
-    OP_DATALOAD = 0xe8,
-    OP_DATALOADN = 0xe9,
-    OP_DATASIZE = 0xea,
-    OP_DATACOPY = 0xeb,
+    OP_EXCHANGE = 0xe8,
 
     OP_CREATE = 0xf0,
     OP_CALL = 0xf1,
@@ -178,6 +180,7 @@ enum Opcode : uint8_t
     OP_RETURN = 0xf3,
     OP_DELEGATECALL = 0xf4,
     OP_CREATE2 = 0xf5,
+    OP_RETURNDATALOAD = 0xf7,
 
     OP_STATICCALL = 0xfa,
 

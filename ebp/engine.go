@@ -50,7 +50,7 @@ type txEngine struct {
 	committedTxs []*types.Transaction
 	// Used to check signatures
 	signer       gethtypes.Signer
-	currentBlock *types.BlockInfo
+	currBlock *types.BlockInfo
 
 	cumulativeGasUsed   uint64
 	cumulativeFeeRefund *uint256.Int
@@ -309,8 +309,8 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 }
 
 func (exec *txEngine) getCurrHeight() uint64 {
-	if exec.currentBlock != nil {
-		return uint64(exec.currentBlock.Number)
+	if exec.currBlock != nil {
+		return uint64(exec.currBlock.Number)
 	}
 	return 0
 }
@@ -435,8 +435,8 @@ func (exec *txEngine) recordInvalidTx(info *preparedInfo) {
 		Status:            gethtypes.ReceiptStatusFailed,
 		StatusStr:         info.errorStr,
 	}
-	if exec.currentBlock != nil {
-		tx.BlockHash = exec.currentBlock.Hash
+	if exec.currBlock != nil {
+		tx.BlockHash = exec.currBlock.Hash
 	}
 	exec.committedTxs = append(exec.committedTxs, tx)
 }
@@ -447,7 +447,7 @@ func (exec *txEngine) Execute(currBlock *types.BlockInfo) {
 	exec.cumulativeGasUsed = 0
 	exec.cumulativeFeeRefund = uint256.NewInt(0)
 	exec.cumulativeGasFee = uint256.NewInt(0)
-	exec.currentBlock = currBlock
+	exec.currBlock = currBlock
 	startKey, endKey := exec.getStandbyQueueRange()
 	if startKey == endKey {
 		return
@@ -464,7 +464,7 @@ func (exec *txEngine) Execute(currBlock *types.BlockInfo) {
 		if txRange.start == txRange.end {
 			break
 		}
-		numTx := exec.executeOneRound(txRange, exec.currentBlock)
+		numTx := exec.executeOneRound(txRange, exec.currBlock)
 		for i := 0; i < numTx; i++ {
 			if Runners[i] == nil {
 				continue // the TX is not committable and needs re-execution
@@ -634,8 +634,8 @@ func (exec *txEngine) collectCommittableTxs(committableRunnerList []*TxRunner) {
 			Hash:              runner.Tx.HashID,
 			TransactionIndex:  int64(idx),
 			Nonce:             runner.Tx.Nonce,
-			BlockHash:         exec.currentBlock.Hash,
-			BlockNumber:       exec.currentBlock.Number,
+			BlockHash:         exec.currBlock.Hash,
+			BlockNumber:       exec.currBlock.Number,
 			From:              runner.Tx.From,
 			To:                runner.Tx.To,
 			Value:             runner.Tx.Value,
@@ -665,8 +665,8 @@ func (exec *txEngine) collectCommittableTxs(committableRunnerList []*TxRunner) {
 			}
 			tx.Logs[i].Data = log.Data
 			log.Data = nil
-			tx.Logs[i].BlockNumber = uint64(exec.currentBlock.Number)
-			copy(tx.Logs[i].BlockHash[:], exec.currentBlock.Hash[:])
+			tx.Logs[i].BlockNumber = uint64(exec.currBlock.Number)
+			copy(tx.Logs[i].BlockHash[:], exec.currBlock.Hash[:])
 			copy(tx.Logs[i].TxHash[:], tx.Hash[:])
 			//txIndex = index in committableRunnerList
 			tx.Logs[i].TxIndex = uint(idx)
@@ -680,7 +680,7 @@ func (exec *txEngine) collectCommittableTxs(committableRunnerList []*TxRunner) {
 }
 
 func (exec *txEngine) reloadQueryExecutorFn() {
-	if exec.aotReloadInterval == 0 || exec.currentBlock.Number%exec.aotReloadInterval != 0 {
+	if exec.aotReloadInterval == 0 || exec.currBlock.Number%exec.aotReloadInterval != 0 {
 		return
 	}
 	ReloadQueryExecutorFn(exec.aotDir)

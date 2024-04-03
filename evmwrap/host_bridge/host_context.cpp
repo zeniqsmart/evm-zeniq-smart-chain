@@ -126,6 +126,20 @@ enum evmc_access_status evmc_access_storage(struct evmc_host_context* context,
 	return context->access_storage(*address, *key);
 }
 
+
+evmc_bytes32 evmc_get_transient_storage(struct evmc_host_context* context,
+					const evmc_address* address,
+					const evmc_bytes32* key){
+	return context->get_transient_storage(*address, *key);
+}
+
+void evmc_set_transient_storage(struct evmc_host_context* context,
+					const evmc_address* address,
+					const evmc_bytes32* key,
+					const evmc_bytes32* value) {
+	context->set_transient_storage(*address, *key, *value);
+}
+
 evmc_host_interface HOST_IFC {
 	.account_exists = evmc_account_exists,
 	.get_storage = evmc_get_storage,
@@ -140,7 +154,9 @@ evmc_host_interface HOST_IFC {
 	.get_block_hash = evmc_get_block_hash,
 	.emit_log = evmc_emit_log,
 	.access_account = evmc_access_account,
-	.access_storage = evmc_access_storage
+	.access_storage = evmc_access_storage,
+	.get_transient_storage = evmc_get_transient_storage,
+	.set_transient_storage = evmc_set_transient_storage
 };
 
 evmc_bytes32 ZERO_BYTES32 = {};
@@ -701,7 +717,11 @@ int64_t zero_depth_call(evmc_uint256be gas_price,
 		.block_timestamp = block->timestamp,
 		.block_gas_limit = block->gas_limit,
 		.block_prev_randao = block->difficulty,
-		.chain_id = block->chain_id
+		.chain_id = block->chain_id,
+		.block_base_fee = block->block_base_fee,
+		.blob_base_fee = block->blob_base_fee,
+		.blob_hashes = nullptr,
+		.blob_hashes_count = 0
 	};
 	auto msg = evmc_message {
 		.kind = is_contract_creation? EVMC_CREATE : EVMC_CALL,

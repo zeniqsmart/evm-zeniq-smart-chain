@@ -1,5 +1,5 @@
 // evmone: Fast Ethereum Virtual Machine implementation
-// Copyright 2019-2020 The evmone Authors.
+// Copyright 2019 The evmone Authors.
 // SPDX-License-Identifier: Apache-2.0
 
 #include "eof.hpp"
@@ -10,7 +10,8 @@ namespace evmone::instr::core
 template <Opcode Op>
 Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexcept
 {
-    static_assert(Op == OP_CALL || Op == OP_CALLCODE || Op == OP_DELEGATECALL || Op == OP_STATICCALL);
+    static_assert(
+        Op == OP_CALL || Op == OP_CALLCODE || Op == OP_DELEGATECALL || Op == OP_STATICCALL);
 
     const auto gas = stack.pop();
     const auto dst = intx::be::trunc<evmc::address>(stack.pop());
@@ -27,14 +28,14 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     if (state.rev >= EVMC_BERLIN && state.host.access_account(dst) == EVMC_ACCESS_COLD)
     {
         if ((gas_left -= instr::additional_cold_account_access_cost) < 0)
-            return RET(EVMC_OUT_OF_GAS);
+            return {EVMC_OUT_OF_GAS, gas_left};
     }
 
     if (!check_memory(gas_left, state.memory, input_offset_u256, input_size_u256))
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     if (!check_memory(gas_left, state.memory, output_offset_u256, output_size_u256))
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     const auto input_offset = static_cast<size_t>(input_offset_u256);
     const auto input_size = static_cast<size_t>(input_size_u256);
@@ -66,14 +67,14 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     if constexpr (Op == OP_CALL)
     {
         if (has_value && state.in_static_mode())
-            return RET(EVMC_STATIC_MODE_VIOLATION);
+            return {EVMC_STATIC_MODE_VIOLATION, gas_left};
 
         if ((has_value || state.rev < EVMC_SPURIOUS_DRAGON) && !state.host.account_exists(dst))
             cost += 25000;
     }
 
     if ((gas_left -= cost) < 0)
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     msg.gas = std::numeric_limits<int64_t>::max();
     if (gas < msg.gas)
@@ -82,7 +83,7 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     if (state.rev >= EVMC_TANGERINE_WHISTLE)  // TODO: Always true for STATICCALL.
         msg.gas = std::min(msg.gas, gas_left - gas_left / 64);
     else if (msg.gas > gas_left)
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     if (has_value)
     {
@@ -91,10 +92,10 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     }
 
     if (state.msg->depth >= 1024)
-        return RET(EVMC_SUCCESS);
+        return {EVMC_SUCCESS, gas_left};  // "Light" failure.
 
     if (has_value && intx::be::load<uint256>(state.host.get_balance(state.msg->recipient)) < value)
-        return RET(EVMC_SUCCESS);
+        return {EVMC_SUCCESS, gas_left};  // "Light" failure.
 
     if constexpr (Op == OP_DELEGATECALL)
     {
@@ -107,7 +108,7 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
             const auto s = state.host.copy_code(
                 msg.code_address, 0, target_code_prefix, std::size(target_code_prefix));
             if (!is_eof_container({target_code_prefix, s}))
-                return RET(EVMC_SUCCESS);
+                return {EVMC_SUCCESS, gas_left};
         }
     }
 
@@ -121,7 +122,7 @@ Result call_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noexce
     const auto gas_used = msg.gas - result.gas_left;
     gas_left -= gas_used;
     state.gas_refund += result.gas_refund;
-    return RET(EVMC_SUCCESS);
+    return {EVMC_SUCCESS, gas_left};
 }
 
 template Result call_impl<OP_CALL>(
@@ -140,7 +141,7 @@ Result create_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noex
     static_assert(Op == OP_CREATE || Op == OP_CREATE2);
 
     if (state.in_static_mode())
-        return RET(EVMC_STATIC_MODE_VIOLATION);
+        return {EVMC_STATIC_MODE_VIOLATION, gas_left};
 
     const auto endowment = stack.pop();
     const auto init_code_offset_u256 = stack.pop();
@@ -151,25 +152,25 @@ Result create_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noex
     state.return_data.clear();
 
     if (!check_memory(gas_left, state.memory, init_code_offset_u256, init_code_size_u256))
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     const auto init_code_offset = static_cast<size_t>(init_code_offset_u256);
     const auto init_code_size = static_cast<size_t>(init_code_size_u256);
 
     if (state.rev >= EVMC_SHANGHAI && init_code_size > 0xC000)
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     const auto init_code_word_cost = 6 * (Op == OP_CREATE2) + 2 * (state.rev >= EVMC_SHANGHAI);
     const auto init_code_cost = num_words(init_code_size) * init_code_word_cost;
     if ((gas_left -= init_code_cost) < 0)
-        return RET(EVMC_OUT_OF_GAS);
+        return {EVMC_OUT_OF_GAS, gas_left};
 
     if (state.msg->depth >= 1024)
-        return RET(EVMC_SUCCESS);
+        return {EVMC_SUCCESS, gas_left};  // "Light" failure.
 
     if (endowment != 0 &&
         intx::be::load<uint256>(state.host.get_balance(state.msg->recipient)) < endowment)
-        return RET(EVMC_SUCCESS);
+        return {EVMC_SUCCESS, gas_left};  // "Light" failure.
 
     auto msg = evmc_message{};
     msg.gas = gas_left;
@@ -182,6 +183,10 @@ Result create_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noex
         // init_code_offset may be garbage if init_code_size == 0.
         msg.input_data = &state.memory[init_code_offset];
         msg.input_size = init_code_size;
+
+        // EOF initcode is not allowed for legacy creation
+        if (is_eof_container({msg.input_data, msg.input_size}))
+            return {EVMC_SUCCESS, gas_left};  // "Light" failure.
     }
     msg.sender = state.msg->recipient;
     msg.depth = state.msg->depth + 1;
@@ -196,7 +201,7 @@ Result create_impl(StackTop stack, int64_t gas_left, ExecutionState& state) noex
     if (result.status_code == EVMC_SUCCESS)
         stack.top() = intx::be::load<uint256>(result.create_address);
 
-    return RET(EVMC_SUCCESS);
+    return {EVMC_SUCCESS, gas_left};
 }
 
 template Result create_impl<OP_CREATE>(

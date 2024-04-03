@@ -139,6 +139,8 @@ using account_map = std::unordered_map<evmc_address, account_entry, hashfn_evmc_
 using creation_counter_map = std::unordered_map<uint8_t, creation_counter_entry>;
 using bytecode_map = std::unordered_map<evmc_address, bytecode_entry, hashfn_evmc_address, equalfn_evmc_address>;
 using value_map = std::unordered_map<storage_key, bytes, hashfn_storage_key, equalfn_storage_key>;
+using transient_mem_account = std::unordered_map<evmc_bytes32, evmc_bytes32, hashfn_evmc_bytes32, equalfn_evmc_bytes32>;
+using transient_mem_map = std::unordered_map<evmc_address, transient_mem_account, hashfn_evmc_address, equalfn_evmc_address>;
 
 // Read the world state from the underlying Go environment
 struct world_state_reader {
@@ -192,6 +194,7 @@ class cached_state {
 	std::vector<internal_tx_call> internal_tx_calls;
 	std::vector<internal_tx_return> internal_tx_returns;
 	bytes payload_data;
+	transient_mem_map transient_mem;
 protected:
 	//the following protected functions are used by the journal_entry to undo modification
 	void _delete_account(const evmc_address& addr) {
@@ -206,9 +209,21 @@ protected:
 	void _undelete_bytecode(const evmc_address& addr, bool dirty);
 	void _unset_bytecode(const evmc_address& addr, bool dirty);
 public:
+	void _set_transient_value(const evmc_address& addr, const evmc_bytes32& key, const evmc_bytes32& value) {
+		transient_mem[addr][key] = value;
+	}
+	evmc_bytes32 _get_transient_value(const evmc_address& addr, const evmc_bytes32& key) {
+		const auto i = transient_mem.find(addr);
+		if (i == transient_mem.end())
+		    return {};
+		const auto storage_iter = i->second.find(key);
+		if (storage_iter != i->second.end())
+		    return storage_iter->second;
+		return {};
+	}
 	uint64_t refund;
 	cached_state(world_state_reader* r):
-		accounts(), creation_counters(), bytecodes(), values(), world(r), logs(), refund() {
+		accounts(), creation_counters(), bytecodes(), values(), world(r), logs(), transient_mem(), refund() {
 		payload_data.reserve(2048);
 	}
 	const account_info& get_account(const evmc_address& addr);
@@ -289,6 +304,7 @@ enum journal_type {
 	CREATION_COUNTER_INCR,
 	REFUND_CHG,
 	LOG_QUEUE_ADD,
+	VALUE_TRANSIENT_CHG,
 };
 
 // We use Tagged-Union for journal_entry, instead of interface pointers, because it's friendly 
@@ -301,6 +317,11 @@ struct journal_entry {
 			evmc_bytes32 key;
 			uint64_t sequence;
 		} value_change;
+
+		struct {
+			evmc_bytes32 key;
+			evmc_address addr;
+		} value_transient;
 
 		struct {
 			evmc_address addr;
@@ -474,6 +495,17 @@ public:
 	evmc_storage_status set_value(uint64_t sequence, const evmc_bytes32& key, bytes_info value);
 	void add_refund(uint64_t delta);
 	void sub_refund(uint64_t delta);
+
+	evmc_bytes32 get_transient_value(const evmc_address& addr, const evmc_bytes32& key) {
+		return cstate._get_transient_value(addr, key);
+	}
+	void set_transient_value(const evmc_address& addr, const evmc_bytes32& key, const evmc_bytes32& value){
+		journal_entry e {.type=VALUE_TRANSIENT_CHG};
+		e.value_transient.key = key;
+		e.value_transient.addr = addr;
+		journal.push_back(e);
+		cstate._set_transient_value(addr,key,value);
+	}
 
 	// just forward the function call to underlying cstate
 	void add_internal_tx_call(const evmc_message& msg) {

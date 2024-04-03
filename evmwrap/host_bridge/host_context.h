@@ -76,6 +76,7 @@ private:
 	bytes empty_code;
 	small_buffer *smallbuf;
 	enum evmc_revision revision;
+
 public:
 	evmc_host_context(tx_control* tc, evmc_message m, small_buffer* b, enum evmc_revision r):
 		txctrl(tc), msg(m), empty_code(), smallbuf(b), revision(r) {}
@@ -119,6 +120,12 @@ public:
 		// if the value is zero, set zero-length value to tx_control, which will later be taken as deletion
 		size_t size = is_zero_bytes32(value.bytes)? 0 : 32;
 		return txctrl->set_value(addr, key, bytes_info{.data=&value.bytes[0], .size=size});
+	}
+	evmc_bytes32 get_transient_storage(const evmc_address& addr, const evmc_bytes32& key) {
+		return txctrl->get_transient_value(addr, key);
+	}
+	void set_transient_storage(const evmc_address& addr, const evmc_bytes32& key, const evmc_bytes32& value) {
+		txctrl->set_transient_value(addr, key, value);
 	}
 	void set_storage_sep206(const evmc_bytes32& key, const allowance_entry& value) {
 		// if the value is zero, set zero-length value to tx_control, which will later be taken as deletion

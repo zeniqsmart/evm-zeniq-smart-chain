@@ -173,6 +173,7 @@ constexpr inline GasCostTable gas_costs = []() noexcept {
     table[EVMC_PRAGUE] = table[EVMC_CANCUN];
     table[EVMC_PRAGUE][OP_DUPN] = 3;
     table[EVMC_PRAGUE][OP_SWAPN] = 3;
+    table[EVMC_PRAGUE][OP_EXCHANGE] = 3;
     table[EVMC_PRAGUE][OP_RJUMP] = 2;
     table[EVMC_PRAGUE][OP_RJUMPI] = 4;
     table[EVMC_PRAGUE][OP_RJUMPV] = 4;
@@ -183,6 +184,7 @@ constexpr inline GasCostTable gas_costs = []() noexcept {
     table[EVMC_PRAGUE][OP_DATALOADN] = 3;
     table[EVMC_PRAGUE][OP_DATASIZE] = 2;
     table[EVMC_PRAGUE][OP_DATACOPY] = 3;
+    table[EVMC_PRAGUE][OP_RETURNDATALOAD] = 3;
 
     return table;
 }();
@@ -204,7 +206,7 @@ struct Traits
     bool is_terminating = false;
 
     /// The number of stack items the instruction accesses during execution.
-    int8_t stack_height_required = 0;
+    uint8_t stack_height_required = 0;
 
     /// The stack height change caused by the instruction execution. Can be negative.
     int8_t stack_height_change = 0;
@@ -389,6 +391,7 @@ constexpr inline std::array<Traits, 256> traits = []() noexcept {
 
     table[OP_DUPN] = {"DUPN", 1, false, 0, 1, EVMC_PRAGUE};
     table[OP_SWAPN] = {"SWAPN", 1, false, 0, 0, EVMC_PRAGUE};
+    table[OP_EXCHANGE] = {"EXCHANGE", 1, false, 0, 0, EVMC_PRAGUE};
     table[OP_MCOPY] = {"MCOPY", 0, false, 3, -3, EVMC_CANCUN};
     table[OP_DATALOAD] = {"DATALOAD", 0, false, 1, 0, EVMC_PRAGUE};
     table[OP_DATALOADN] = {"DATALOADN", 2, false, 0, 1, EVMC_PRAGUE};
@@ -401,6 +404,7 @@ constexpr inline std::array<Traits, 256> traits = []() noexcept {
     table[OP_RETURN] = {"RETURN", 0, true, 2, -2, EVMC_FRONTIER};
     table[OP_DELEGATECALL] = {"DELEGATECALL", 0, false, 6, -5, EVMC_HOMESTEAD};
     table[OP_CREATE2] = {"CREATE2", 0, false, 4, -3, EVMC_CONSTANTINOPLE};
+    table[OP_RETURNDATALOAD] = {"RETURNDATALOAD", 0, false, 1, 0, EVMC_PRAGUE};
     table[OP_STATICCALL] = {"STATICCALL", 0, false, 6, -5, EVMC_BYZANTIUM};
     table[OP_CALLF] = {"CALLF", 2, false, 0, 0, EVMC_PRAGUE};
     table[OP_RETF] = {"RETF", 0, true, 0, 0, EVMC_PRAGUE};

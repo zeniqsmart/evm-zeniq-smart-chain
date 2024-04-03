@@ -594,6 +594,8 @@ func runTxHelper(idx int, currBlock *types.BlockInfo, estimateGas bool) int64 {
 	bi.number = C.int64_t(currBlock.Number)
 	bi.timestamp = C.int64_t(currBlock.Timestamp)
 	bi.gas_limit = C.int64_t(currBlock.GasLimit)
+	writeCBytes32WithSlice(&bi.block_base_fee,currBlock.BaseFeePerGas[:])
+	writeCBytes32WithSlice(&bi.blob_base_fee ,currBlock.BaseFeeBlob[:])
 	bi.cfg.IsXHedgeFork = C.bool(runner.Ctx.IsXHedgeFork())
 	bi.cfg.IsCCRPCFork = C.bool(runner.Ctx.IsCCRPCFork())
 

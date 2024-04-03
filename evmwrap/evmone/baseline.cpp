@@ -195,6 +195,13 @@ struct Position
 }
 
 [[release_inline]] inline code_iterator invoke(
+    code_iterator (*instr_fn)(StackTop, code_iterator) noexcept, Position pos, int64_t& /*gas*/,
+    ExecutionState& /*state*/) noexcept
+{
+    return instr_fn(pos.stack_top, pos.code_it);
+}
+
+[[release_inline]] inline code_iterator invoke(
     TermResult (*instr_fn)(StackTop, int64_t, ExecutionState&) noexcept, Position pos, int64_t& gas,
     ExecutionState& state) noexcept
 {
@@ -278,7 +285,6 @@ int64_t dispatch(const CostTable& cost_table, ExecutionState& state, int64_t gas
 int64_t dispatch_cgoto(
     const CostTable& cost_table, ExecutionState& state, int64_t gas, const uint8_t* code) noexcept
 {
-
 #pragma GCC diagnostic ignored "-Wpedantic"
 
     static constexpr void* cgoto_table[] = {
@@ -342,9 +348,8 @@ evmc_result execute(
     else
         {
 #if EVMONE_CGOTO_SUPPORTED
-        if (vm.cgoto) {
+        if (vm.cgoto)
             gas = dispatch_cgoto(cost_table, state, gas, code.data());
-        }
         else
 #endif
             gas = dispatch<false>(cost_table, state, gas, code.data());

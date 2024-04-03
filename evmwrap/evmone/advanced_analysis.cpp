@@ -39,30 +39,29 @@ struct BlockAnalysis
     }
 };
 
-AdvancedCodeAnalysis analyze(evmc_revision rev, bytes_view codev) noexcept
+AdvancedCodeAnalysis analyze(evmc_revision rev, bytes_view code) noexcept
 {
-    const auto code = codev.data();
-    const auto code_size = codev.size();
-
     const auto& op_tbl = get_op_table(rev);
     const auto opx_beginblock_fn = op_tbl[OPX_BEGINBLOCK].fn;
 
     AdvancedCodeAnalysis analysis;
 
-    const auto max_instrs_size = code_size + 2;  // Additional OPX_BEGINBLOCK and STOP
+    const auto max_instrs_size = code.size() + 2;  // Additional OPX_BEGINBLOCK and STOP
     analysis.instrs.reserve(max_instrs_size);
 
-    // This is 2x more than needed but using (code_size / 2 + 1) increases page-faults 1000x.
-    const auto max_args_storage_size = code_size + 1;
+    // This is 2x more than needed but using (code.size() / 2 + 1) increases page-faults 1000x.
+    const auto max_args_storage_size = code.size() + 1;
     analysis.push_values.reserve(max_args_storage_size);
 
     // Create first block.
     analysis.instrs.emplace_back(opx_beginblock_fn);
     auto block = BlockAnalysis{0};
 
-    const auto code_end = code + code_size;
-    auto code_pos = code;
-
+    // TODO: Iterators are not used here because because push_end may point way outside of code
+    //       and this is not allowed and MSVC will detect it with instrumented iterators.
+    const auto code_begin = code.data();
+    const auto code_end = code_begin + code.size();
+    auto code_pos = code_begin;
     while (code_pos != code_end)
     {
         const auto opcode = *code_pos++;
@@ -76,7 +75,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, bytes_view codev) noexcept
             block = BlockAnalysis{analysis.instrs.size()};
 
             // The JUMPDEST is always the first instruction in the block.
-            analysis.jumpdest_offsets.emplace_back(static_cast<int32_t>(code_pos - code - 1));
+            analysis.jumpdest_offsets.emplace_back(static_cast<int32_t>(code_pos - code_begin - 1));
             analysis.jumpdest_targets.emplace_back(static_cast<int32_t>(analysis.instrs.size()));
         }
 
@@ -149,7 +148,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, bytes_view codev) noexcept
             const auto push_value_bytes = intx::as_bytes(push_value);
             auto insert_pos = &push_value_bytes[push_size - 1];
 
-            // Copy bytes to the deticated storage in the order to match native endianness.
+            // Copy bytes to the dedicated storage in the order to match native endianness.
             // The condition `code_pos < code_end` is to handle the edge case of PUSH being at
             // the end of the code with incomplete value bytes.
             // This condition can be replaced with single `push_end <= code_end` done once before
@@ -177,7 +176,7 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, bytes_view codev) noexcept
             break;
 
         case OP_PC:
-            instr.arg.number = code_pos - code - 1;
+            instr.arg.number = code_pos - code_begin - 1;
             break;
         }
     }
@@ -197,5 +196,4 @@ AdvancedCodeAnalysis analyze(evmc_revision rev, bytes_view codev) noexcept
     return analysis;
 }
 
-}  // namespace evmone
-
+}  // namespace evmone::advanced

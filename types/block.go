@@ -17,6 +17,7 @@ type Block struct {
 	GasUsed          uint64     `msg:"gasused"` //the total used gas by all transactions in this block.
 	Timestamp        int64      `msg:"time"`    //the unix timestamp for when the block was collated.
 	Transactions     [][32]byte `msg:"txs"`     //Array - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.
+	BaseFeePerGas    [32]byte   `msg:"basefee"` //32 Bytes - the root of the final state trie of the block.
 	//GasLimit         uint64 //the maximum gas allowed in this block.
 	//Nonce: 8 Bytes - hash of the generated proof-of-work. Null when the returned block is the pending block.
 	//Sha3Uncles: 32 Bytes - SHA3 of the uncles data in the block.

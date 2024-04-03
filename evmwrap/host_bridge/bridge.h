@@ -119,6 +119,8 @@ struct block_info {
 	int64_t gas_limit;         /**< The block gas limit. */
 	struct evmc_bytes32 difficulty; /**< The block difficulty. */
 	struct evmc_bytes32 chain_id;   /**< The blockchain's ChainID. */
+	struct evmc_bytes32 block_base_fee;    /**< The block base fee per gas (EIP-1559, EIP-3198). */
+	struct evmc_bytes32 blob_base_fee;     /**< The blob base fee (EIP-7516). */
 	struct config cfg;
 };
 

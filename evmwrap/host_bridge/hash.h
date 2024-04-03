@@ -49,3 +49,16 @@ public:
 	}
 };
 
+class hashfn_evmc_bytes32 {
+public:
+	size_t operator() (evmc_bytes32 const& key) const {
+		return fasthash(&key.bytes[0], sizeof(evmc_bytes32));
+	}
+};
+
+class equalfn_evmc_bytes32 {
+public:
+	bool operator() (evmc_bytes32 const& a1, evmc_bytes32 const& a2) const {
+		return memcmp(a1.bytes, a2.bytes, sizeof(evmc_bytes32)) == 0;
+	}
+};

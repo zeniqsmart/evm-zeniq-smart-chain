@@ -34,6 +34,10 @@ constexpr auto legacy_cost_tables = []() noexcept {
     tables[EVMC_PRAGUE][OP_DATALOADN] = instr::undefined;
     tables[EVMC_PRAGUE][OP_DATASIZE] = instr::undefined;
     tables[EVMC_PRAGUE][OP_DATACOPY] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_DUPN] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_SWAPN] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_EXCHANGE] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_RETURNDATALOAD] = instr::undefined;
     return tables;
 }();
 
@@ -44,6 +48,14 @@ constexpr auto eof_cost_tables = []() noexcept {
     tables[EVMC_PRAGUE][OP_PC] = instr::undefined;
     tables[EVMC_PRAGUE][OP_CALLCODE] = instr::undefined;
     tables[EVMC_PRAGUE][OP_SELFDESTRUCT] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_CREATE] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_CREATE2] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_CODESIZE] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_CODECOPY] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_EXTCODESIZE] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_EXTCODECOPY] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_EXTCODEHASH] = instr::undefined;
+    tables[EVMC_PRAGUE][OP_GAS] = instr::undefined;
     return tables;
 }();
 

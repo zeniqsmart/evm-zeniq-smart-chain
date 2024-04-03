@@ -363,6 +363,10 @@ void journal_entry::revert(cached_state* state) {
 	case VALUE_CHG:
 		state->_set_value(value_change.sequence, value_change.key, &this->prev_value);
 		break;
+	case VALUE_TRANSIENT_CHG:
+		state->_set_transient_value(value_transient.addr, value_transient.key,
+				u256_to_u256be(bytes_to_u256(this->prev_value)));
+		break;
 	case ACCOUNT_CREATE:
 		state->_delete_account(account_creation.addr);
 		break;
