@@ -27,7 +27,7 @@ const (
 
 // SEP206SEP
 var Sep206Address = common.HexToAddress("0x0000000000000000000000000000000000002711")
-var SEP206AddrAsZeniqOnEthereum = common.HexToAddress("0x5b52bfB8062Ce664D74bbCd4Cd6DC7Df53Fd7233")
+var SEP206AddrAsZeniqOnEthereum = common.HexToAddress("0x5b52bfb8062ce664d74bbcd4cd6dc7df53fd7233")
 var _ TxExecutor = (*txEngine)(nil)
 
 type TxRange struct {
@@ -49,7 +49,7 @@ type txEngine struct {
 	txList       []*gethtypes.Transaction
 	committedTxs []*types.Transaction
 	// Used to check signatures
-	signer       gethtypes.Signer
+	signer    gethtypes.Signer
 	currBlock *types.BlockInfo
 
 	cumulativeGasUsed   uint64
@@ -168,13 +168,13 @@ func NewEbpTxExec(exeRoundCount, runnerNumber, parallelNum, defaultTxListCap int
 
 	Runners = make([]*TxRunner, runnerNumber)
 	return &txEngine{
-		roundNum:     exeRoundCount,
-		runnerNumber: runnerNumber,
-		parallelNum:  parallelNum,
-		txList:       make([]*gethtypes.Transaction, 0, defaultTxListCap),
-		committedTxs: make([]*types.Transaction, 0, defaultTxListCap),
-		signer:       s,
-		logger:       logger,
+		roundNum:       exeRoundCount,
+		runnerNumber:   runnerNumber,
+		parallelNum:    parallelNum,
+		txList:         make([]*gethtypes.Transaction, 0, defaultTxListCap),
+		committedTxs:   make([]*types.Transaction, 0, defaultTxListCap),
+		signer:         s,
+		logger:         logger,
 		CCRPCForkBlock: CCRPCForkBlock,
 	}
 }
@@ -282,12 +282,12 @@ func (exec *txEngine) deductGasFeeAndUpdateFrontier(sender common.Address, info 
 		info.errorStr = "not enough balance to pay gasfee"
 		return err
 	} else {
-		if  (info.tx.To == Sep206Address && int64(exec.getCurrHeight()) <  exec.CCRPCForkBlock ) ||
-			(info.tx.To == SEP206AddrAsZeniqOnEthereum && int64(exec.getCurrHeight()) >= exec.CCRPCForkBlock ) {
+		if (info.tx.To == Sep206Address && int64(exec.getCurrHeight()) < exec.CCRPCForkBlock) ||
+			(info.tx.To == SEP206AddrAsZeniqOnEthereum && int64(exec.getCurrHeight()) >= exec.CCRPCForkBlock) {
 			entry.addr2Balance[sender] = uint256.NewInt(0)
 		} else {
 			if balance, exist := entry.addr2Balance[sender]; !exist {
-				entry.addr2Balance[sender] = GetBalanceAfterBchTransfer(entry.ctx, sender, info.tx.Value)
+				entry.addr2Balance[sender] = GetBalanceAfterTransfer(entry.ctx, sender, info.tx.Value)
 			} else {
 				if balance.Cmp(gasFee) < 0 {
 					entry.addr2Balance[sender] = uint256.NewInt(0)
@@ -806,7 +806,7 @@ func updateBalance(ctx *types.Context, address common.Address, amount *uint256.I
 	return nil
 }
 
-func GetBalanceAfterBchTransfer(ctx *types.Context, address common.Address, value [32]byte) *uint256.Int {
+func GetBalanceAfterTransfer(ctx *types.Context, address common.Address, value [32]byte) *uint256.Int {
 	acc := ctx.GetAccount(address)
 	if acc == nil {
 		return uint256.NewInt(0)
@@ -834,3 +834,4 @@ func GetBlackHoleBalance(ctx *types.Context) *uint256.Int {
 	}
 	return acc.Balance()
 }
+

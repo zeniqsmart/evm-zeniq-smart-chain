@@ -170,6 +170,8 @@ typedef void (*bridge_call_precompiled_contract_fn)(struct evmc_address* contrac
 
 typedef evmc_execute_fn (*bridge_query_executor_fn)(const evmc_address* recipient);
 
+void add_crosschain(evmc_uint256be amount);
+
 // Since we want to compile evmwrap into a dynamic library (.so), it cannot have unlinked external functions.
 // Thus, there is only one way to allow C to call Go: pass function pointers from Go to C.
 // The following bridge_*_fn parameters are doing this job.

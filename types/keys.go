@@ -77,16 +77,16 @@ type EvmLog struct {
 }
 
 type BlockInfo struct {
-	Coinbase   [20]byte
-	Hash       [32]byte
-	Number     int64
-	Timestamp  int64
-	GasLimit   int64
-	Difficulty [32]byte
-	ChainId    [32]byte
+	Coinbase      [20]byte
+	Hash          [32]byte
+	Number        int64
+	Timestamp     int64
+	GasLimit      int64
+	Difficulty    [32]byte
+	ChainId       [32]byte
 	BaseFeePerGas [32]byte
-	BaseFeeBlob [32]byte
-	Revision   uint32
+	BaseFeeBlob   [32]byte
+	Revision      uint32
 }
 
 type BasicTx struct {

@@ -658,6 +658,7 @@ typedef void (*evmc_set_transient_storage_fn)(struct evmc_host_context* context,
                                               const evmc_bytes32* key,
                                               const evmc_bytes32* value);
 
+
 /**
  * Get balance callback function.
  *

@@ -4,7 +4,7 @@ import "encoding/binary"
 
 //go:generate msgp
 
-//BLOCK - A block object, or null when no block was found
+// BLOCK - A block object, or null when no block was found
 type Block struct {
 	Number           int64      `msg:"num"`     //the block number. Null when the returned block is the pending block.
 	Hash             [32]byte   `msg:"hash"`    //32 Bytes - hash of the block. Null when the returned block is the pending block.

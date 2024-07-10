@@ -36,7 +36,7 @@ type InternalTxCall struct {
 	Input []byte `msg:"input"`
 
 	/**
-	* The amount of BCH transferred with the message.
+	* The amount transferred with the message.
 	 */
 	Value [32]byte `msg:"value"`
 }
@@ -139,7 +139,7 @@ type ReadWriteLists struct {
 // data: contains one or more 32 Bytes non-indexed arguments of the log.
 // topics: Array of 0 to 4 32 Bytes of indexed log arguments. (In solidity: The first topic is the hash of the signature of the event (e.g. Deposit(address,bytes32,uint256)), except you declared the event with the anonymous specifier.)
 
-//TRANSACTION - A transaction object, or null when no transaction was found
+// TRANSACTION - A transaction object, or null when no transaction was found
 type Transaction struct {
 	Hash              [32]byte  `msg:"hash"`         //32 Bytes - hash of the transaction.
 	TransactionIndex  int64     `msg:"index"`        //integer of the transactions index position in the block. null when its pending.

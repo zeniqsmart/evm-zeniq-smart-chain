@@ -71,14 +71,12 @@ func call_precompiled_contract(contract_addr *evmc_address,
 	*output_size = 0
 	addr := toAddress(contract_addr)
 	contract, ok := vm.PrecompiledContractsIstanbul[addr]
-	sep109BCH   := common.Address([20]byte{0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0    , 0    , 0    , 0    , 0    , 0x27 , 0x13})
-	// latter was checked here although only the following was let through by host_context.cpp
-	sep109ZENIQ := common.Address([20]byte{0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0x5A , 0x45 , 0x4E , 0x49 , 0x51 , 0x00 , 0x04})
-	// so sep109 was not reachable in live2022 and this is how it needs to stay until IsCCRPCFork else appHash problem during sync
-	if !IsCCRPCFork && addr == sep109BCH {
+	sep109_A := common.Address([20]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x27, 0x13})
+	sep109_B := common.Address([20]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x5A, 0x45, 0x4E, 0x49, 0x51, 0x00, 0x04})
+	if !IsCCRPCFork && addr == sep109_A {
 		contract = &VrfVerifyContract{}
 		ok = true
-	} else if IsCCRPCFork && (addr == sep109ZENIQ || addr == sep109BCH) {
+	} else if IsCCRPCFork && (addr == sep109_B || addr == sep109_A) {
 		contract = &VrfVerifyContract{}
 		ok = true
 	} else if executor, exist := PredefinedContractManager[addr]; exist {

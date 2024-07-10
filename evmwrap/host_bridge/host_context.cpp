@@ -14,6 +14,8 @@ const int64_t SEP206_CONTRACT_ID = 0x5a454e49510002;
 const int64_t STAKING_CONTRACT_ID = 0x5a454e49510001;
 const evmc_address SEP206AddrAsZeniqOnEthereum = {0x5b,0x52,0xbf,0xB8,0x06,0x2C,0xe6,0x64,0xD7,0x4b,0xbC,0xd4,0xCd,0x6D,0xC7,0xDf,0x53,0xFd,0x72,0x33};
 
+static uint256 crosschain{};
+
 static inline bool address_equal_inline(const evmc_address& a, const evmc_address& b) {
 	return memcmp(&a.bytes[0], &b.bytes[0], 20) == 0;
 }
@@ -156,7 +158,7 @@ evmc_host_interface HOST_IFC {
 	.access_account = evmc_access_account,
 	.access_storage = evmc_access_storage,
 	.get_transient_storage = evmc_get_transient_storage,
-	.set_transient_storage = evmc_set_transient_storage
+	.set_transient_storage = evmc_set_transient_storage,
 };
 
 evmc_bytes32 ZERO_BYTES32 = {};
@@ -662,6 +664,10 @@ __inline__ uint64_t rdtsc() {
   return (d<<32) | a;
 }
 
+void add_crosschain(evmc_uint256be amount){
+	crosschain += bytes_to_u256({&amount.bytes[0],32});
+}
+
 int64_t zero_depth_call(evmc_uint256be gas_price,
                      int64_t gas_limit,
                      const evmc_address* recipient,
@@ -930,6 +936,23 @@ static inline evmc_result evmc_result_from_bool(uint8_t* buffer, bool value, uin
 		.output_size=32};
 }
 
+//    function nonceOf(address owner) external view returns (uint);
+evmc_result evmc_host_context::sep206_nonceOf() {
+	if(msg.input_size != 4 + 32) {
+		return evmc_result{.status_code=EVMC_PRECOMPILE_FAILURE};
+	}
+	evmc_address addr;
+	memcpy(addr.bytes, msg.input_data + 4 + 12, 20);
+	evmc_uint256be nonce = get_nonce(addr);
+	memcpy(this->smallbuf->data, nonce.bytes, 32);
+	return evmc_result{
+		.status_code=EVMC_SUCCESS,
+		.gas_left=int64_t(msg.gas),
+		.output_data=this->smallbuf->data,
+		.output_size=32};
+}
+
+
 //    function balanceOf(address owner) external view returns (uint);
 evmc_result evmc_host_context::sep206_balanceOf() {
 	if(msg.input_size != 4 + 32) {
@@ -1108,6 +1131,9 @@ evmc_result evmc_host_context::run_precompiled_contract_sep206() {
 		case SELECTOR_SEP206_TOTALSUPPLY:
 			gas = SEP206_TOTALSUPPLY_GAS;
 		break;
+		case SELECTOR_SEP206_NONCEOF:
+			gas = SEP206_NONCEOF_GAS;
+		break;
 		case SELECTOR_SEP206_BALANCEOF:
 			gas = SEP206_BALANCEOF_GAS;
 		break;
@@ -1157,8 +1183,11 @@ evmc_result evmc_host_context::run_precompiled_contract_sep206() {
 		case SELECTOR_SEP206_DECIMALS:
 			return evmc_result_from_uint256(this->smallbuf->data, uint256(18), msg.gas);
 		case SELECTOR_SEP206_TOTALSUPPLY:
-			return evmc_result_from_uint256(this->smallbuf->data, 
-					uint256(2100*10000)*uint256(1000000000000000000), msg.gas);
+			return evmc_result_from_uint256(this->smallbuf->data,
+				crosschain +
+				uint256(2100*10000)*uint256(1000000000000000000), msg.gas);
+		case SELECTOR_SEP206_NONCEOF:
+			return sep206_nonceOf();
 		case SELECTOR_SEP206_BALANCEOF:
 			return sep206_balanceOf();
 		case SELECTOR_SEP206_ALLOWANCE:

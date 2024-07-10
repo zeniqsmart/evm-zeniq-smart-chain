@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	"github.com/holiman/uint256"
+	"github.com/tendermint/tendermint/libs/log"
 	"github.com/zeniqsmart/ads-zeniq-smart-chain/ads"
 	"github.com/zeniqsmart/ads-zeniq-smart-chain/store"
 	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/zeniqsmart/evm-zeniq-smart-chain/ebp"
 	tc "github.com/zeniqsmart/evm-zeniq-smart-chain/evmwrap/testcase"

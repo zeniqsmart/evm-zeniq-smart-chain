@@ -27,6 +27,7 @@ import (
 //                             bool need_gas_estimation,
 //                             enum evmc_revision revision,
 //                             bridge_query_executor_fn query_executor_fn);
+//void add_crosschain(evmc_bytes32 amount);
 import "C"
 
 type (
@@ -594,8 +595,8 @@ func runTxHelper(idx int, currBlock *types.BlockInfo, estimateGas bool) int64 {
 	bi.number = C.int64_t(currBlock.Number)
 	bi.timestamp = C.int64_t(currBlock.Timestamp)
 	bi.gas_limit = C.int64_t(currBlock.GasLimit)
-	writeCBytes32WithSlice(&bi.block_base_fee,currBlock.BaseFeePerGas[:])
-	writeCBytes32WithSlice(&bi.blob_base_fee ,currBlock.BaseFeeBlob[:])
+	writeCBytes32WithSlice(&bi.block_base_fee, currBlock.BaseFeePerGas[:])
+	writeCBytes32WithSlice(&bi.blob_base_fee, currBlock.BaseFeeBlob[:])
 	bi.cfg.IsXHedgeFork = C.bool(runner.Ctx.IsXHedgeFork())
 	bi.cfg.IsCCRPCFork = C.bool(runner.Ctx.IsCCRPCFork())
 
@@ -688,3 +689,13 @@ func StatusToStr(status int) string {
 	}
 	return "unknown"
 }
+
+func AddCrosschain(v *uint256.Int) {
+	bz := v.Bytes32()
+	var b32 = evmc_bytes32{}
+	for i := 0; i < 32; i++ {
+		b32.bytes[i] = C.uint8_t(bz[31-i])
+	}
+	C.add_crosschain(b32);
+}
+

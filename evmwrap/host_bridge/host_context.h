@@ -14,6 +14,7 @@ const uint32_t SELECTOR_SEP206_NAME = 0x06fdde03;
 const uint32_t SELECTOR_SEP206_SYMBOL = 0x95d89b41;
 const uint32_t SELECTOR_SEP206_DECIMALS = 0x313ce567;
 const uint32_t SELECTOR_SEP206_TOTALSUPPLY = 0x18160ddd;
+const uint32_t SELECTOR_SEP206_NONCEOF = 0xed2a2d64;
 const uint32_t SELECTOR_SEP206_BALANCEOF = 0x70a08231;
 const uint32_t SELECTOR_SEP206_ALLOWANCE = 0xdd62ed3e;
 const uint32_t SELECTOR_SEP206_APPROVE = 0x095ea7b3;
@@ -34,6 +35,7 @@ const uint32_t SEP206_NAME_GAS = 3000;
 const uint32_t SEP206_SYMBOL_GAS = 3000;
 const uint32_t SEP206_DECIMALS_GAS = 1000;
 const uint32_t SEP206_TOTALSUPPLY_GAS = 1000;
+const uint32_t SEP206_NONCEOF_GAS = 20000;
 const uint32_t SEP206_BALANCEOF_GAS = 20000;
 const uint32_t SEP206_ALLOWANCE_GAS = 20000;
 const uint32_t SEP206_APPROVE_GAS = 25000;
@@ -142,6 +144,16 @@ public:
 		}
 		return info.balance;
 	}
+	evmc_uint256be get_nonce(const evmc_address& addr) {
+		return u256_to_u256be(get_nonce_as_uint256(addr));
+	}
+	uint256 get_nonce_as_uint256(const evmc_address& addr) {
+		const account_info& info = txctrl->get_account(addr);
+		if(info.is_null() || info.is_empty() || info.selfdestructed) {
+			return uint256(0);
+		}
+		return uint256(info.nonce);
+	}
 	size_t get_code_size(const evmc_address& addr);
 	const evmc_bytes32& get_code_hash(const evmc_address& addr);
 	size_t copy_code(const evmc_address& addr, size_t code_offset, uint8_t* buffer_data, size_t buffer_size);
@@ -167,6 +179,7 @@ public:
 	evmc_result run_precompiled_contract_echo();
 	evmc_result run_precompiled_contract_sep101();
 	evmc_result run_precompiled_contract_sep206();
+	evmc_result sep206_nonceOf();
 	evmc_result sep206_balanceOf();
 	evmc_result sep206_allowance();
 	evmc_result sep206_approve(bool new_value, bool increase);

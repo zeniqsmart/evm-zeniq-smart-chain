@@ -16,11 +16,11 @@ import (
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/libs/log"
 	"github.com/zeniqsmart/ads-zeniq-smart-chain/ads"
 	"github.com/zeniqsmart/ads-zeniq-smart-chain/store"
 	"github.com/zeniqsmart/ads-zeniq-smart-chain/store/rabbit"
-	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/zeniqsmart/evm-zeniq-smart-chain/evmwrap/testcase"
 	"github.com/zeniqsmart/evm-zeniq-smart-chain/types"
