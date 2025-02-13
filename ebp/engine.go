@@ -740,6 +740,10 @@ func (exec *txEngine) CollectTx(tx *gethtypes.Transaction) {
 	exec.txList = append(exec.txList, tx)
 }
 
+func (exec *txEngine) CollectedTx() []*gethtypes.Transaction {
+	return exec.txList
+}
+
 func (exec *txEngine) CollectedTxsCount() int {
 	return len(exec.txList)
 }
@@ -834,4 +838,3 @@ func GetBlackHoleBalance(ctx *types.Context) *uint256.Int {
 	}
 	return acc.Balance()
 }
-
